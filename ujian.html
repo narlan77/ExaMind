@@ -218,7 +218,7 @@
     localStorage.removeItem("durasi_total_detik");
   }
 
-  // 1. VERIFIKASI & AMBIL SOAL DARI SERVER
+  // 1. VERIFIKASI & AMBIL SOAL DARI SERVER (MENGGUNAKAN METODE POST DAN HEADER TEXT/PLAIN UNTUK CEGAH CORS)
   async function mulaiKonfirmasiUjian(e) {
     e.preventDefault();
     
@@ -237,7 +237,17 @@
     dataPeserta = { kode, noPeserta, nama, kelas };
 
     try {
-      const res = await fetch(`${API_URL}?action=getSoalSiswa&kode=${kode}`);
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify({
+          action: "getSoalSiswa",
+          kode: kode
+        })
+      });
+
       const result = await res.json();
 
       if (result.status === "success") {
@@ -278,7 +288,7 @@
       btnMasuk.innerText = "Verifikasi & Buka Soal";
     }
   }
-
+  
   // 2. TAMPILKAN SOAL BERDASARKAN INDEX
   function tampilkanSoal(index) {
     indexSoalAktif = index;
@@ -355,10 +365,8 @@
   }
 
   function handleInputEssai(keyUnik, isiJawaban) {
-    // Simpan ke local state terlebih dahulu
     pilihJawaban(keyUnik, isiJawaban);
 
-    // Gunakan Debounce agar tidak mengirim request berulang setiap kali mengetik 1 huruf
     if (timerAutoSaveEssai) clearTimeout(timerAutoSaveEssai);
     timerAutoSaveEssai = setTimeout(() => {
       autoSaveJawabanKeServer(keyUnik, isiJawaban);
@@ -386,6 +394,9 @@
     try {
       fetch(API_URL, {
         method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
         body: JSON.stringify(payload)
       })
       .then(res => res.json())
@@ -510,11 +521,14 @@
     try {
       const res = await fetch(API_URL, {
         method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
         body: JSON.stringify(payload)
       });
       const result = await res.json();
 
-      hapusSesiLokal(); // Hapus sesi begitu ujian selesai terkirim
+      hapusSesiLokal();
 
       if (result.status === "success") {
         document.body.innerHTML = `
