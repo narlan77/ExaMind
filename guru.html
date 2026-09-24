@@ -32,22 +32,22 @@
       border-color: #0b5ed7;
     }
     @media print {
-  /* Sembunyikan tombol, navigasi tab, dan elemen non-cetak */
-  .no-print, #guruTab, .btn, nav, header {
-    display: none !important;
-  }
-  
-  /* Pastikan tab analisis tampil penuh saat dicetak */
-  .tab-pane {
-    display: block !important;
-    opacity: 1 !important;
-  }
+      /* Sembunyikan tombol, navigasi tab, dan elemen non-cetak */
+      .no-print, #guruTab, .btn, nav, header {
+        display: none !important;
+      }
+      
+      /* Pastikan tab aktif tampil penuh saat dicetak */
+      .tab-pane {
+        display: block !important;
+        opacity: 1 !important;
+      }
 
-  .card {
-    border: none !important;
-    box-shadow: none !important;
-  }
-}
+      .card {
+        border: none !important;
+        box-shadow: none !important;
+      }
+    }
   </style>
 
   <!-- Library Parser Excel (.xlsx) & Word (.docx) -->
@@ -96,8 +96,7 @@
       <button class="nav-link fw-bold" id="hasil-tab" data-bs-toggle="tab" data-bs-target="#tab-hasil" onClick="muatHasilUjian()">Hasil & Nilai Ujian</button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="tab-analisis-tab" data-bs-toggle="tab" data-bs-target="#tab-analisis" type="button" onClick="muatAnalisisSoal()">📊 Analisis Soal
-        </button>
+      <button class="nav-link fw-bold" id="tab-analisis-tab" data-bs-toggle="tab" data-bs-target="#tab-analisis" type="button" onClick="muatAnalisisSoal()">📊 Analisis Soal</button>
     </li>
   </ul>
 
@@ -216,50 +215,51 @@
         </div>
       </div>
     </div>
+
     <!-- TAB 4: ANALISIS HASIL UJIAN -->
-<div class="tab-pane fade" id="tab-analisis" role="tabpanel">
-  <div class="card shadow-sm mt-3">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap gap-2">
-      <h5 class="mb-0">📊 Analisis Butir Soal</h5>
-      <div class="d-flex gap-2 no-print">
-        <button class="btn btn-sm btn-success fw-bold" onClick="exportAnalisisToExcel()">
-          📥 Export Excel
-        </button>
-        <button class="btn btn-sm btn-light fw-bold" onClick="cetakAnalisisPDF()">
-          🖨️ Cetak PDF
-        </button>
-        <button class="btn btn-sm btn-outline-light fw-bold" onClick="muatAnalisisSoal()">
-          🔄 Refresh
-        </button>
+    <div class="tab-pane fade" id="tab-analisis" role="tabpanel">
+      <div class="card card-custom p-4 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="fw-bold mb-0">📊 Analisis Butir Soal</h5>
+            <small class="text-muted" id="infoTotalSiswaAnalisis">Total Responden: -</small>
+          </div>
+          <div class="no-print">
+            <button class="btn btn-success btn-sm fw-bold me-1" onClick="exportAnalisisToExcel()">
+              📥 Export Excel
+            </button>
+            <button class="btn btn-secondary btn-sm fw-bold me-1" onClick="cetakAnalisisPDF()">
+              🖨️ Cetak / PDF
+            </button>
+            <button class="btn btn-outline-primary btn-sm fw-bold" onClick="muatAnalisisSoal()">
+              🔄 Refresh
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle" id="tabelAnalisisSoal">
+            <thead class="table-dark text-center">
+              <tr>
+                <th style="width: 60px;">No</th>
+                <th style="width: 80px;">Tipe</th>
+                <th style="width: 80px;">Kunci</th>
+                <th>Sebaran Jawaban (A / B / C / D / E)</th>
+                <th style="width: 90px;">Benar</th>
+                <th style="width: 90px;">Salah</th>
+                <th style="width: 120px;">% Kesukaran</th>
+                <th style="width: 110px;">Kategori</th>
+              </tr>
+            </thead>
+            <tbody id="tabelAnalisisBody">
+              <tr>
+                <td colspan="8" class="text-center py-3 text-muted">Silakan masukkan Kode Soal dan klik tab ini.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-    <div class="card-body">
-      <div id="infoTotalSiswaAnalisis" class="mb-3 fw-bold text-muted"></div>
-      
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped align-middle" id="tabelAnalisisSoal">
-          <thead class="table-dark text-center">
-            <tr>
-              <th style="width: 60px;">No</th>
-              <th style="width: 80px;">Tipe</th>
-              <th style="width: 80px;">Kunci</th>
-              <th>Sebaran Jawaban (A / B / C / D)</th>
-              <th style="width: 90px;">Benar</th>
-              <th style="width: 90px;">Salah</th>
-              <th style="width: 120px;">% Kesukaran</th>
-              <th style="width: 110px;">Kategori</th>
-            </tr>
-          </thead>
-          <tbody id="tabelAnalisisBody">
-            <tr>
-              <td colspan="8" class="text-center py-3 text-muted">Silakan masukkan Kode Soal dan klik tab ini.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
 
   </div>
 </div>
@@ -294,43 +294,36 @@
   </div>
 </div>
 
-
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// State Global
-  let rawDataAnalisis = []; // <-- TAMBAHKAN BARIS INI
+  // State Global
+  let rawDataAnalisis = [];
   let rawDataHasil = [];
   let rawDataBankSoal = [];
   let selectedIndexHasil = -1;
   let modalEssaiInstance = null;
 
   // ==========================================
-  // 1. AUTO-RESTORE & STATE MANAGEMENT (ANTI RESET REFRESH)
+  // 1. AUTO-RESTORE & STATE MANAGEMENT
   // ==========================================
   document.addEventListener("DOMContentLoaded", function() {
-    // A. Restore Nama Guru
     const nama = sessionStorage.getItem("namaGuru");
     if (nama) {
       document.getElementById("labelNamaGuru").innerText = nama;
     }
 
-    // B. Inisialisasi Modal Bootstrap
     modalEssaiInstance = new bootstrap.Modal(document.getElementById('modalEssai'));
 
-    // C. Restore Kode Soal Terakhir
     const lastKode = localStorage.getItem("guru_last_kode_soal");
     if (lastKode) {
       document.getElementById("kodeSoalInput").value = lastKode;
     }
 
-    // D. Simpan Kode Soal Otomatis Saat Diketik
     document.getElementById("kodeSoalInput").addEventListener("input", function(e) {
       localStorage.setItem("guru_last_kode_soal", e.target.value.trim().toUpperCase());
     });
 
-    // E. Restore Tab Aktif Terakhir
     const lastTab = localStorage.getItem("guru_active_tab");
     if (lastTab) {
       const tabTrigger = document.querySelector(`#guruTab button[data-bs-target="${lastTab}"]`);
@@ -339,11 +332,12 @@
         tab.show();
         if (lastTab === "#tab-hasil" && lastKode) {
           muatHasilUjian();
+        } else if (lastTab === "#tab-analisis" && lastKode) {
+          muatAnalisisSoal();
         }
       }
     }
 
-    // F. Simpan Tab Aktif Saat Diklik
     const tabEls = document.querySelectorAll('#guruTab button[data-bs-toggle="tab"]');
     tabEls.forEach(tabEl => {
       tabEl.addEventListener('shown.bs.tab', function (event) {
@@ -416,6 +410,7 @@
           opB: String(row.opB || row["B"] || row["Opsi B"] || ""),
           opC: String(row.opC || row["C"] || row["Opsi C"] || ""),
           opD: String(row.opD || row["D"] || row["Opsi D"] || ""),
+          opE: String(row.opE || row["E"] || row["Opsi E"] || ""),
           kunci: String(row.kunci || row["Kunci"] || row["Jawaban"] || "").trim().toUpperCase(),
           skor: parseInt(row.skor || row["Skor"] || 2)
         }));
@@ -466,13 +461,14 @@
         if (lines.length < 2) return;
 
         let pertanyaan = lines[0].replace(/^\d+[\.\)]\s*/, '');
-        let opA = "", opB = "", opC = "", opD = "", kunci = "A", tipe = "PG";
+        let opA = "", opB = "", opC = "", opD = "", opE = "", kunci = "A", tipe = "PG";
 
         lines.forEach(line => {
           if (/^[A|a][\.\)]/.test(line)) opA = line.replace(/^[A|a][\.\)]\s*/, '');
           else if (/^[B|b][\.\)]/.test(line)) opB = line.replace(/^[B|b][\.\)]\s*/, '');
           else if (/^[C|c][\.\)]/.test(line)) opC = line.replace(/^[C|c][\.\)]\s*/, '');
           else if (/^[D|d][\.\)]/.test(line)) opD = line.replace(/^[D|d][\.\)]\s*/, '');
+          else if (/^[E|e][\.\)]/.test(line)) opE = line.replace(/^[E|e][\.\)]\s*/, '');
           else if (/^(Kunci|Jawaban):/i.test(line)) kunci = line.split(':')[1].trim().toUpperCase();
           else if (/^(Tipe):/i.test(line)) tipe = line.split(':')[1].trim().toUpperCase();
         });
@@ -486,6 +482,7 @@
             opB: opB,
             opC: opC,
             opD: opD,
+            opE: opE,
             kunci: kunci || "A",
             skor: 2
           });
@@ -638,7 +635,6 @@
       const nilaiEssai = parseFloat(item.nilai_essai || 0);
       const totalNilai = nilaiPG + nilaiEssai;
 
-      // Cek apakah siswa ini sudah memiliki catatan/detail nilai essai atau nilai essai > 0
       let detailNilaiObj = {};
       try {
         detailNilaiObj = typeof item.detail_nilai_essai === 'string' 
@@ -646,16 +642,10 @@
           : (item.detail_nilai_essai || {});
       } catch(e) {}
 
-      // Indikator sudah dikoreksi: Jika objek detail_nilai_essai tidak kosong ATAU nilai_essai > 0
       const sudahDikoreksi = Object.keys(detailNilaiObj).length > 0 || nilaiEssai > 0;
 
-      // Tentukan style tombol berdasarkan status koreksi
-      const btnClass = sudahDikoreksi 
-        ? "btn-success text-white" 
-        : "btn-warning text-dark";
-      const btnText = sudahDikoreksi 
-        ? "✅ Sudah Dikoreksi" 
-        : "📝 Koreksi Essai";
+      const btnClass = sudahDikoreksi ? "btn-success text-white" : "btn-warning text-dark";
+      const btnText = sudahDikoreksi ? "✅ Sudah Dikoreksi" : "📝 Koreksi Essai";
 
       const row = `
         <tr>
@@ -676,7 +666,7 @@
       tbody.innerHTML += row;
     });
   }
-  
+
   function bukaModalEssai(index) {
     selectedIndexHasil = index;
     const item = rawDataHasil[index];
@@ -802,7 +792,111 @@
   }
 
   // ==========================================
-  // 5. FITUR EXPORT EXCEL & PRINT
+  // 5. FITUR ANALISIS BUTIR SOAL (SUDAH DIPERBAIKI)
+  // ==========================================
+  async function muatAnalisisSoal() {
+    const kode = getKodeSoal();
+    if (!kode) return;
+
+    const tbody = document.getElementById("tabelAnalisisBody");
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Menganalisis butir soal...</td></tr>';
+
+    try {
+      const payload = { action: "analisisSoal", kode_soal: kode };
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (result.status === "success") {
+        // SET DATA ANALISIS KE VARIABLE GLOBAL
+        rawDataAnalisis = result.analisis || result.data || [];
+        
+        document.getElementById("infoTotalSiswaAnalisis").innerText = `Total Responden/Siswa: ${result.total_siswa || 0} orang`;
+        
+        if (rawDataAnalisis.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">Belum ada data siswa untuk dianalisis.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = "";
+        rawDataAnalisis.forEach(item => {
+          let badgeKategori = "bg-success";
+          if (item.kategori === "Mudah") badgeKategori = "bg-info text-dark";
+          if (item.kategori === "Sukar") badgeKategori = "bg-danger";
+
+          const isPG = item.tipe === "PG" || item.tipe === "PILGAN";
+          const seb = item.sebaran || { A:0, B:0, C:0, D:0, E:0 };
+          const sebaranText = isPG 
+            ? `A: <b>${seb.A || 0}</b> | B: <b>${seb.B || 0}</b> | C: <b>${seb.C || 0}</b> | D: <b>${seb.D || 0}</b>${seb.E !== undefined ? ` | E: <b>${seb.E}</b>` : ''}`
+            : `<i class="text-muted">Soal Essai (Manual)</i>`;
+
+          const row = `
+            <tr>
+              <td class="text-center fw-bold">${item.no_soal}</td>
+              <td class="text-center"><span class="badge bg-secondary">${item.tipe}</span></td>
+              <td class="text-center fw-bold text-primary">${item.kunci || "-"}</td>
+              <td>${sebaranText}</td>
+              <td class="text-center text-success fw-bold">${item.benar}</td>
+              <td class="text-center text-danger fw-bold">${item.salah}</td>
+              <td class="text-center fw-bold">${item.tingkat_kesukaran}</td>
+              <td class="text-center"><span class="badge ${badgeKategori}">${item.kategori}</span></td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+
+      } else {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">Gagal: ${result.message}</td></tr>`;
+      }
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Terjadi kesalahan koneksi saat memuat analisis.</td></tr>';
+    }
+  }
+
+  function exportAnalisisToExcel() {
+    const kode = getKodeSoal();
+    if (!kode || rawDataAnalisis.length === 0) {
+      alert("Tidak ada data analisis soal untuk di-export!");
+      return;
+    }
+
+    const dataExcel = rawDataAnalisis.map((item) => {
+      const seb = item.sebaran || {};
+      return {
+        "No Soal": item.no_soal,
+        "Tipe": item.tipe,
+        "Kunci Jawaban": item.kunci || "-",
+        "Jumlah Benar": item.benar,
+        "Jumlah Salah": item.salah,
+        "Opsi A": seb.A || 0,
+        "Opsi B": seb.B || 0,
+        "Opsi C": seb.C || 0,
+        "Opsi D": seb.D || 0,
+        "Opsi E": seb.E || 0,
+        "% Kesukaran": item.tingkat_kesukaran,
+        "Kategori": item.kategori
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataExcel);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Analisis Soal");
+    XLSX.writeFile(workbook, `Analisis_Soal_${kode}.xlsx`);
+  }
+
+  function cetakAnalisisPDF() {
+    const kode = getKodeSoal();
+    if (!kode || rawDataAnalisis.length === 0) {
+      alert("Tidak ada data analisis soal untuk dicetak!");
+      return;
+    }
+    window.print();
+  }
+
+  // ==========================================
+  // 6. FITUR EXPORT EXCEL & PRINT REKAP NILAI
   // ==========================================
   function exportToExcel() {
     const kode = getKodeSoal();
@@ -840,64 +934,6 @@
     }
     window.print();
   }
-  
-  async function muatAnalisisSoal() {
-    const kode = getKodeSoal();
-    if (!kode) return;
-
-    const tbody = document.getElementById("tabelAnalisisBody");
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Menganalisis butir soal...</td></tr>';
-
-    try {
-      const payload = { action: "analisisSoal", kode_soal: kode };
-      const res = await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-      const result = await res.json();
-
-      if (result.status === "success") {
-        document.getElementById("infoTotalSiswaAnalisis").innerText = `Total Responden/Siswa: ${result.total_siswa} orang`;
-        
-        if (rawDataAnalisis.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">Belum ada data siswa untuk dianalisis.</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = "";
-        rawDataAnalisis.forEach(item => {
-          let badgeKategori = "bg-success";
-          if (item.kategori === "Mudah") badgeKategori = "bg-info text-dark";
-          if (item.kategori === "Sukar") badgeKategori = "bg-danger";
-
-          const isPG = item.tipe === "PG" || item.tipe === "PILGAN";
-          const sebaranText = isPG 
-            ? `A: <b>${item.sebaran.A}</b> | B: <b>${item.sebaran.B}</b> | C: <b>${item.sebaran.C}</b> | D: <b>${item.sebaran.D}</b>`
-            : `<i class="text-muted">Soal Essai (Dilewati)</i>`;
-
-          const row = `
-            <tr>
-              <td class="text-center fw-bold">${item.no_soal}</td>
-              <td class="text-center"><span class="badge bg-secondary">${item.tipe}</span></td>
-              <td class="text-center fw-bold text-primary">${item.kunci || "-"}</td>
-              <td>${sebaranText}</td>
-              <td class="text-center text-success fw-bold">${item.benar}</td>
-              <td class="text-center text-danger fw-bold">${item.salah}</td>
-              <td class="text-center fw-bold">${item.tingkat_kesukaran}</td>
-              <td class="text-center"><span class="badge ${badgeKategori}">${item.kategori}</span></td>
-            </tr>
-          `;
-          tbody.innerHTML += row;
-        });
-
-      } else {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">Gagal: ${result.message}</td></tr>`;
-      }
-    } catch (e) {
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Terjadi kesalahan koneksi saat memuat analisis.</td></tr>';
-    }
-  }
-  
 </script>
 </body>
 </html>
