@@ -298,18 +298,39 @@
     // GUNAKAN INDEX SEBAGAI KEY UNIK (1-based index)
     const keyUnik = index + 1;
 
-    const tipeSoal = String(item.tipe || "PG").trim().toUpperCase();
+    // Deteksi Tipe Soal
+    let tipeSoal = String(item.tipe || "").trim().toUpperCase();
+    
+    // Jika kolom 'tipe' kosong tetapi kolom 'pertanyaan' berisi teks "PG" atau "ESSAI"
+    let teksPertanyaan = item.pertanyaan;
+    let opA = item.opA;
+    let opB = item.opB;
+    let opC = item.opC;
+    let opD = item.opD;
+    let opE = item.opE;
+
+    if (teksPertanyaan && (teksPertanyaan.trim().toUpperCase() === "PG" || teksPertanyaan.trim().toUpperCase() === "ESSAI" || teksPertanyaan.trim().toUpperCase() === "ESSAY")) {
+      tipeSoal = teksPertanyaan.trim().toUpperCase();
+      // Terjadi pergeseran kolom dari server: Soal ada di opA, Opsi A ada di opB, dst.
+      teksPertanyaan = item.opA;
+      opA = item.opB;
+      opB = item.opC;
+      opC = item.opD;
+      opD = item.opE;
+      opE = ""; // Opsi E dikosongkan karena bergeser
+    }
+
     const isEssai = (tipeSoal === "ESSAI" || tipeSoal === "ESSAY" || tipeSoal === "ES");
 
     document.getElementById("labelNomorSoal").innerText = `Soal No. ${index + 1} dari ${listSoal.length} (${isEssai ? "Essai" : "Pilihan Ganda"})`;
     
-    // MENAMPILKAN HANYA TEKS SOAL/PERTANYAAN DI LUAR AREA OPSI
-    document.getElementById("soalKonten").innerHTML = item.pertanyaan;
+    // TAMPILKAN PERTANYAAN
+    document.getElementById("soalKonten").innerHTML = teksPertanyaan || "-";
 
     const containerOpsi = document.getElementById("opsiJawabanContainer");
     containerOpsi.innerHTML = "";
 
-    // JIKA TIPE SOAL ADALAH ESSAI / ES: HANYA TAMPILKAN KOTAK TEXTAREA
+    // JIKA TIPE SOAL ADALAH ESSAI / ES
     if (isEssai) {
       const textJawaban = jawabanSiswa[keyUnik] || "";
       const htmlEssai = `
@@ -321,18 +342,18 @@
       `;
       containerOpsi.innerHTML = htmlEssai;
     } 
-    // JIKA TIPE SOAL ADALAH PILIHAN GANDA (PG): TAMPILKAN OPSI PILIHAN A-E
+    // JIKA TIPE SOAL ADALAH PILIHAN GANDA (PG)
     else {
       const pilihan = [
-        { key: "A", val: item.opA },
-        { key: "B", val: item.opB },
-        { key: "C", val: item.opC },
-        { key: "D", val: item.opD },
-        { key: "E", val: item.opE }
+        { key: "A", val: opA },
+        { key: "B", val: opB },
+        { key: "C", val: opC },
+        { key: "D", val: opD },
+        { key: "E", val: opE }
       ];
 
       pilihan.forEach(opt => {
-        if (opt.val) {
+        if (opt.val && String(opt.val).trim() !== "") {
           const isChecked = jawabanSiswa[keyUnik] === opt.key ? "checked" : "";
           const htmlOpsi = `
             <label class="option-item d-block">
