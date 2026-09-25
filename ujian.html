@@ -105,11 +105,12 @@
               <h6 class="fw-bold text-primary mb-0" id="labelNomorSoal">Soal No. 1</h6>
             </div>
             
+            <!-- HANYA MENAMPILKAN PERTANYAAN -->
             <div id="soalKonten" class="soal-text mb-4">
               <!-- Pertanyaan akan dimuat dinamis -->
             </div>
 
-            <!-- OPTION / KOTAK JAWABAN -->
+            <!-- OPTION / KOTAK JAWABAN (DIBUAT TERPISAH) -->
             <div id="opsiJawabanContainer">
               <!-- Opsi A-E atau Textarea Essai dimuat dinamis -->
             </div>
@@ -218,7 +219,7 @@
     localStorage.removeItem("durasi_total_detik");
   }
 
-  // 1. VERIFIKASI & AMBIL SOAL DARI SERVER (MENGGUNAKAN METODE POST DAN HEADER TEXT/PLAIN UNTUK CEGAH CORS)
+  // 1. VERIFIKASI & AMBIL SOAL DARI SERVER
   async function mulaiKonfirmasiUjian(e) {
     e.preventDefault();
     
@@ -301,12 +302,14 @@
     const isEssai = (tipeSoal === "ESSAI" || tipeSoal === "ESSAY" || tipeSoal === "ES");
 
     document.getElementById("labelNomorSoal").innerText = `Soal No. ${index + 1} dari ${listSoal.length} (${isEssai ? "Essai" : "Pilihan Ganda"})`;
+    
+    // MENAMPILKAN HANYA TEKS SOAL/PERTANYAAN DI LUAR AREA OPSI
     document.getElementById("soalKonten").innerHTML = item.pertanyaan;
 
     const containerOpsi = document.getElementById("opsiJawabanContainer");
     containerOpsi.innerHTML = "";
 
-    // JIKA TIPE SOAL ADALAH ESSAI / ES
+    // JIKA TIPE SOAL ADALAH ESSAI / ES: HANYA TAMPILKAN KOTAK TEXTAREA
     if (isEssai) {
       const textJawaban = jawabanSiswa[keyUnik] || "";
       const htmlEssai = `
@@ -318,7 +321,7 @@
       `;
       containerOpsi.innerHTML = htmlEssai;
     } 
-    // JIKA TIPE SOAL ADALAH PILIHAN GANDA (PG)
+    // JIKA TIPE SOAL ADALAH PILIHAN GANDA (PG): TAMPILKAN OPSI PILIHAN A-E
     else {
       const pilihan = [
         { key: "A", val: item.opA },
