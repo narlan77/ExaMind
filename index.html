@@ -261,6 +261,10 @@
 
   <!-- LOGIKA SCRIPT LOGIN & NAVIGASI -->
   <script>
+  document.addEventListener('DOMContentLoaded', function() {
+  // Hanya mengecek koneksi awal / memuat data via fetch jika diperlukan
+});
+  
     // 1. Fungsi Buka Modal Login / Panel Guru
     function bukaModalLoginGuru() {
       const isLoggedIn = sessionStorage.getItem("isGuruLoggedIn");
