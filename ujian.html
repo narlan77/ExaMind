@@ -176,8 +176,9 @@
 
   // PEMERIKSAAN OTOMATIS SAAT HALAMAN DI-REFRESH
   document.addEventListener("DOMContentLoaded", function() {
-    cekSesiUjianAktif();
-  });
+  cekSesiUjianAktif();
+  muatDaftarKodeSoal(); // TAMBAHKAN BARIS INI
+});
 
   function cekSesiUjianAktif() {
     const sesiSaved = localStorage.getItem("sesi_ujian_aktif");
