@@ -558,54 +558,67 @@
   }
 
   // UPDATE: MEMUAT PENGATURAN TERMASUK DAFTAR KELAS
-  async function muatDataSoal() {
-    const kode = getKodeSoal();
-    if (!kode) return;
-
-    const btn = document.getElementById("btnMuatPengaturan");
-    if (btn) btn.disabled = true;
-
-    try {
-      const data = await apiPost({ action: "getPengaturan", kode: kode });
-      
-      if (data.status === "success" && data.data) {
-        const cfg = Array.isArray(data.data) ? (data.data[0] || {}) : data.data;
-
-        if (!cfg || Object.keys(cfg).length === 0) {
-          alert(`Pengaturan untuk kode '${kode}' belum diset. Silakan isi form lalu klik 'Simpan Pengaturan'.`);
-          return;
-        }
-
-        document.getElementById("cfgKodeUjian").value = kode;
-        document.getElementById("cfgDurasi").value = cfg.durasi || 90;
-        document.getElementById("cfgPenyusun").value = cfg.penyusun || cfg.nama_ujian || "";
-        document.getElementById("cfgPengawas").value = cfg.pengawas || "";
-        
-        // Memuat Daftar Kelas
-        document.getElementById("cfgDaftarKelas").value = cfg.daftar_kelas || cfg.kelas || "";
-
-        selectDropdownValue("cfgJenisUjian", cfg.jenis_ujian || "");
-        selectDropdownValue("cfgStatus", cfg.status_ujian || cfg.status || "Aktif");
-        selectDropdownValue("cfgAcak", cfg.acak_soal || "Tidak");
-        
-
-        alert(`Data pengaturan untuk kode '${kode}' berhasil dimuat.`);
-      } else {
-        alert(data.message || `Data pengaturan untuk kode '${kode}' belum diset. Silakan isi form dan simpan terlebih dahulu.`);
-      }
-    } catch (e) {
-      alert("Gagal memuat pengaturan: " + e.message);
-    } finally {
-      if (btn) btn.disabled = false;
-    }
-  }
-
-  // UPDATE: MENYIMPAN PENGATURAN TERMASUK DAFTAR KELAS
-  async function simpanPengaturan() {
+async function muatDataSoal() {
   const kode = getKodeSoal();
   if (!kode) return;
 
-  // Mengambil elemen dengan aman untuk mencegah TypeError
+  const btn = document.getElementById("btnMuatPengaturan");
+  
+  // 1. SIMPAN TEKS ASLI TOMBOL & TAMPILKAN ANIMASI SPINNER
+  const teksAsli = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Memuat Data...`;
+
+  try {
+    const data = await apiPost({ action: "getPengaturan", kode: kode });
+    
+    if (data.status === "success" && data.data) {
+      const cfg = Array.isArray(data.data) ? (data.data[0] || {}) : data.data;
+
+      if (!cfg || Object.keys(cfg).length === 0) {
+        alert(`Pengaturan untuk kode '${kode}' belum diset. Silakan isi form lalu klik 'Simpan Pengaturan'.`);
+        return;
+      }
+
+      document.getElementById("cfgKodeUjian").value = kode;
+      document.getElementById("cfgDurasi").value = cfg.durasi || 90;
+      document.getElementById("cfgPenyusun").value = cfg.penyusun || cfg.nama_ujian || "";
+      document.getElementById("cfgPengawas").value = cfg.pengawas || "";
+      
+      // Memuat Daftar Kelas
+      document.getElementById("cfgDaftarKelas").value = cfg.daftar_kelas || cfg.kelas || "";
+
+      selectDropdownValue("cfgJenisUjian", cfg.jenis_ujian || "");
+      selectDropdownValue("cfgStatus", cfg.status_ujian || cfg.status || "Aktif");
+      selectDropdownValue("cfgAcak", cfg.acak_soal || "Tidak");
+
+      alert(`Data pengaturan untuk kode '${kode}' berhasil dimuat.`);
+    } else {
+      alert(data.message || `Data pengaturan untuk kode '${kode}' belum diset. Silakan isi form dan simpan terlebih dahulu.`);
+    }
+  } catch (e) {
+    alert("Gagal memuat pengaturan: " + e.message);
+  } finally {
+    // 2. KEMBALIKAN TOMBOL KE TAMPILAN SEMULA
+    btn.disabled = false;
+    btn.innerHTML = teksAsli;
+  }
+}
+
+  // UPDATE: MENYIMPAN PENGATURAN TERMASUK DAFTAR KELAS
+async function simpanPengaturan() {
+  const kode = getKodeSoal();
+  if (!kode) return;
+
+  // 1. AMBIL ELEMEN TOMBOL & EFEK ANIMASI LOADING
+  const btn = document.querySelector("#formPengaturan button[onClick='simpanPengaturan()']") || 
+              event.currentTarget;
+  const teksAsli = btn.innerHTML;
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan Pengaturan...`;
+
+  // Mengambil elemen input dengan aman
   const elJenis = document.getElementById("cfgJenisUjian");
   const elDurasi = document.getElementById("cfgDurasi");
   const elPenyusun = document.getElementById("cfgPenyusun");
@@ -623,7 +636,7 @@
     pengawas: elPengawas ? elPengawas.value : "",
     status_ujian: elStatus ? elStatus.value : "Aktif",
     acak_soal: elAcak ? elAcak.value : "Tidak",
-    kelas: elKelas ? elKelas.value.trim() : "" // <-- Ubah dari "daftar_kelas" menjadi "kelas"
+    kelas: elKelas ? elKelas.value.trim() : ""
   };
 
   try {
@@ -631,6 +644,10 @@
     alert(result.message || "Pengaturan berhasil disimpan!");
   } catch (e) {
     alert("Gagal menyimpan pengaturan: " + e.message);
+  } finally {
+    // 2. KEMBALIKAN TOMBOL KE TAMPILAN SEMULA
+    btn.disabled = false;
+    btn.innerHTML = teksAsli;
   }
 }
 
