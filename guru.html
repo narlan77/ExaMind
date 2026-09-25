@@ -891,7 +891,7 @@ async function simpanPengaturan() {
           <td class="text-center"><span class="badge bg-success fs-6">${totalNilai}</span></td>
           <td class="text-center no-print">
             <button class="btn btn-sm ${btnClass} fw-bold me-1" onclick="bukaModalEssai(${origIndex})">${btnText}</button>
-            <button class="btn btn-sm btn-outline-danger fw-bold" title="Hapus Data Peserta" onclick="hapusHasilSiswa('${item.no_peserta}')">🗑️</button>
+            <button class="btn btn-sm btn-outline-danger fw-bold" title="Hapus Data Peserta" onclick="hapusHasilSiswa('${item.no_peserta || item.noPeserta}', this)">🗑️</button>
           </td>
         </tr>
       `;
@@ -908,28 +908,46 @@ async function simpanPengaturan() {
     });
   }
 
-  function filterHasilUjian() {
-    const search = document.getElementById("searchSiswaInput").value.toLowerCase();
-    const filterKelas = document.getElementById("filterKelasSelect").value;
+// 1. FUNGSI FILTER & SEARCH SISWA (DI-UPDATE)
+function filterHasilUjian() {
+  const searchInput = document.getElementById("searchSiswaInput");
+  const filterKelasInput = document.getElementById("filterKelasSelect");
 
-    filteredHasil = rawDataHasil.filter(item => {
-      const matchSearch = (item.nama || "").toLowerCase().includes(search) || 
-                          (item.no_peserta || "").toLowerCase().includes(search);
-      const matchKelas = filterKelas === "" || item.kelas === filterKelas;
-      return matchSearch && matchKelas;
-    });
+  const search = searchInput ? searchInput.value.toLowerCase().trim() : "";
+  const filterKelas = filterKelasInput ? filterKelasInput.value.trim() : "";
 
-    renderTabelHasil(filteredHasil);
-    updateStatistikUjian(filteredHasil);
-  }
+  filteredHasil = rawDataHasil.filter(item => {
+    // Ambil nilai nama & no_peserta secara aman
+    const nama = String(item.nama || "").toLowerCase();
+    const noPeserta = String(item.no_peserta || item.noPeserta || item.nis || "").toLowerCase();
+    const kelas = String(item.kelas || "").trim();
 
-  function resetFilterHasil() {
-    document.getElementById("searchSiswaInput").value = "";
-    document.getElementById("filterKelasSelect").value = "";
-    filteredHasil = [...rawDataHasil];
-    renderTabelHasil(filteredHasil);
-    updateStatistikUjian(filteredHasil);
-  }
+    // Cek apakah kecocokan kata kunci pencarian ada pada Nama ATAU No Peserta
+    const matchSearch = search === "" || nama.includes(search) || noPeserta.includes(search);
+    
+    // Cek kecocokan filter kelas
+    const matchKelas = filterKelas === "" || kelas === filterKelas;
+
+    return matchSearch && matchKelas;
+  });
+
+  // Render ulang tabel dengan hasil filter & perbarui kartu statistik
+  renderTabelHasil(filteredHasil);
+  updateStatistikUjian(filteredHasil);
+}
+
+// 2. FUNGSI RESET FILTER (DI-UPDATE)
+function resetFilterHasil() {
+  const searchInput = document.getElementById("searchSiswaInput");
+  const filterKelasInput = document.getElementById("filterKelasSelect");
+
+  if (searchInput) searchInput.value = "";
+  if (filterKelasInput) filterKelasInput.value = "";
+
+  filteredHasil = [...rawDataHasil];
+  renderTabelHasil(filteredHasil);
+  updateStatistikUjian(filteredHasil);
+}
 
   function updateStatistikUjian(dataList = rawDataHasil) {
     if (!dataList || dataList.length === 0) {
@@ -950,25 +968,45 @@ async function simpanPengaturan() {
     document.getElementById("statMin").innerText = min;
   }
 
-  async function hapusHasilSiswa(noPeserta) {
-    const kode = getKodeSoal();
-    if (!kode) return;
+async function hapusHasilSiswa(noPeserta, btnElement) {
+  const kode = getKodeSoal();
+  if (!kode) return;
 
-    if (!confirm(`Apakah Anda yakin ingin menghapus data hasil ujian peserta dengan No: ${noPeserta}?`)) return;
+  if (!confirm(`Apakah Anda yakin ingin menghapus data hasil ujian peserta dengan No/NIS: ${noPeserta}?`)) return;
 
-    try {
-      const payload = { action: "hapusHasilUjian", kode_soal: kode, no_peserta: noPeserta };
-      const result = await apiPost(payload);
-      if (result.status === "success") {
-        alert(result.message || "Data peserta berhasil dihapus!");
-        muatHasilUjian();
-      } else {
-        alert("Gagal menghapus: " + result.message);
-      }
-    } catch (e) {
-      alert("Terjadi kesalahan koneksi saat menghapus data: " + e.message);
+  // Animasi Tombol Hapus (Disabled & Spinner)
+  const btn = btnElement || (event ? event.currentTarget : null);
+  let teksAsli = "";
+  if (btn) {
+    teksAsli = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+  }
+
+  try {
+    const payload = { 
+      action: "hapusHasilUjian", 
+      kode_soal: kode, 
+      no_peserta: String(noPeserta).trim() 
+    };
+    
+    const result = await apiPost(payload);
+    
+    if (result.status === "success") {
+      alert(result.message || "Data peserta berhasil dihapus!");
+      muatHasilUjian(); // Refresh tabel setelah dihapus
+    } else {
+      alert("Gagal menghapus: " + result.message);
+    }
+  } catch (e) {
+    alert("Terjadi kesalahan koneksi saat menghapus data: " + e.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = teksAsli;
     }
   }
+}
 
   function bukaModalEssai(index) {
     selectedIndexHasil = index;
@@ -1044,44 +1082,56 @@ async function simpanPengaturan() {
     document.getElementById("inputNilaiEssaiModal").value = total;
   }
 
-  async function simpanNilaiEssai() {
-    if (selectedIndexHasil < 0) return;
+async function simpanNilaiEssai() {
+  if (selectedIndexHasil < 0) return;
 
-    const item = rawDataHasil[selectedIndexHasil];
-    const detailNilaiPerNomor = {};
-    let totalNilaiEssai = 0;
+  // 1. AMBIL ELEMEN TOMBOL & TAMPILKAN ANIMASI LOADING
+  const btn = document.querySelector("#modalEssai .modal-footer button[onClick='simpanNilaiEssai()']") || 
+              event.currentTarget;
+  const teksAsli = btn.innerHTML;
 
-    const inputs = document.querySelectorAll(".input-nilai-per-soal");
-    inputs.forEach(input => {
-      const key = input.getAttribute("data-key");
-      const val = parseFloat(input.value) || 0;
-      detailNilaiPerNomor[key] = val;
-      totalNilaiEssai += val;
-    });
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan Nilai...`;
 
-    const payload = {
-      action: "simpanNilaiEssai",
-      kode_soal: getKodeSoal(),
-      no_peserta: item.no_peserta,
-      nilai_essai: totalNilaiEssai,
-      detail_nilai_essai: detailNilaiPerNomor
-    };
+  const item = rawDataHasil[selectedIndexHasil];
+  const detailNilaiPerNomor = {};
+  let totalNilaiEssai = 0;
 
-    try {
-      const result = await apiPost(payload);
-      if (result.status === "success") {
-        rawDataHasil[selectedIndexHasil].nilai_essai = totalNilaiEssai;
-        rawDataHasil[selectedIndexHasil].detail_nilai_essai = detailNilaiPerNomor;
-        filterHasilUjian();
-        modalEssaiInstance.hide();
-        alert("Rincian Nilai Essai per nomor berhasil disimpan!");
-      } else {
-        alert("Gagal menyimpan nilai: " + result.message);
-      }
-    } catch(e) {
-      alert("Terjadi kesalahan koneksi saat menyimpan nilai: " + e.message);
+  const inputs = document.querySelectorAll(".input-nilai-per-soal");
+  inputs.forEach(input => {
+    const key = input.getAttribute("data-key");
+    const val = parseFloat(input.value) || 0;
+    detailNilaiPerNomor[key] = val;
+    totalNilaiEssai += val;
+  });
+
+  const payload = {
+    action: "simpanNilaiEssai",
+    kode_soal: getKodeSoal(),
+    no_peserta: item.no_peserta,
+    nilai_essai: totalNilaiEssai,
+    detail_nilai_essai: detailNilaiPerNomor
+  };
+
+  try {
+    const result = await apiPost(payload);
+    if (result.status === "success") {
+      rawDataHasil[selectedIndexHasil].nilai_essai = totalNilaiEssai;
+      rawDataHasil[selectedIndexHasil].detail_nilai_essai = detailNilaiPerNomor;
+      filterHasilUjian();
+      modalEssaiInstance.hide();
+      alert("Rincian Nilai Essai per nomor berhasil disimpan!");
+    } else {
+      alert("Gagal menyimpan nilai: " + result.message);
     }
+  } catch (e) {
+    alert("Terjadi kesalahan koneksi saat menyimpan nilai: " + e.message);
+  } finally {
+    // 2. KEMBALIKAN TOMBOL KE TAMPILAN SEMULA
+    btn.disabled = false;
+    btn.innerHTML = teksAsli;
   }
+}
 
   // ANALISIS SOAL
   async function muatAnalisisSoal() {
