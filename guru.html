@@ -1005,27 +1005,65 @@
     }
   }
 
-  function parseExcel(file) {
+function parseExcel(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
+        
+        // Cari sheet bernama 'BankSoal' terlebih dahulu, jika tidak ada gunakan sheet pertama
+        let sheetName = workbook.SheetNames.find(name => name.trim().toLowerCase() === 'banksoal') || workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const rawJson = XLSX.utils.sheet_to_json(sheet);
+        const rawJson = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-        const listSoal = rawJson.map((row, index) => ({
-          no_soal: parseInt(row.no_soal || row["No Soal"] || row["No"] || row["NO"] || (index + 1)),
-          tipe: String(row.tipe || row["Tipe"] || "PG").trim().toUpperCase(),
-          pertanyaan: String(row.pertanyaan || row["Pertanyaan"] || row["Soal"] || ""),
-          opA: String(row.opA || row["Opsi A"] || row["A"] || ""),
-          opB: String(row.opB || row["Opsi B"] || row["B"] || ""),
-          opC: String(row.opC || row["Opsi C"] || row["C"] || ""),
-          opD: String(row.opD || row["Opsi D"] || row["D"] || ""),
-          kunci: String(row.kunci || row["Kunci"] || row["Jawaban"] || "").trim().toUpperCase(),
-          skor: parseInt(row.skor || row["Skor"] || 2)
-        }));
+        const listSoal = rawJson.map((row, index) => {
+          // Normalisasi pencarian kunci berdasarkan nama properti tanpa memperdulikan kapitalisasi/spasi
+          let kunciVal = "";
+          let noSoalVal = index + 1;
+          let tipeVal = "PG";
+          let pertanyaanVal = "";
+          let opA = "", opB = "", opC = "", opD = "";
+          let skorVal = 2;
+
+          // Iterasi seluruh properti di baris Excel untuk pencocokan yang aman
+          Object.keys(row).forEach(key => {
+            const cleanKey = key.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+            const val = String(row[key]).trim();
+
+            if (cleanKey === 'nosoal' || cleanKey === 'no' || cleanKey === 'nomor') {
+              noSoalVal = parseInt(val) || (index + 1);
+            } else if (cleanKey === 'tipe' || cleanKey === 'jenis') {
+              tipeVal = val.toUpperCase();
+            } else if (cleanKey === 'pertanyaan' || cleanKey === 'soal') {
+              pertanyaanVal = row[key];
+            } else if (cleanKey === 'opsia' || cleanKey === 'a') {
+              opA = row[key];
+            } else if (cleanKey === 'opsib' || cleanKey === 'b') {
+              opB = row[key];
+            } else if (cleanKey === 'opsic' || cleanKey === 'c') {
+              opC = row[key];
+            } else if (cleanKey === 'opsid' || cleanKey === 'd') {
+              opD = row[key];
+            } else if (cleanKey === 'kunci' || cleanKey === 'kuncijawaban' || cleanKey === 'jawaban' || cleanKey === 'jawabanbenar') {
+              kunciVal = val.toUpperCase();
+            } else if (cleanKey === 'skor' || cleanKey === 'bobot') {
+              skorVal = parseInt(val) || 2;
+            }
+          });
+
+          return {
+            no_soal: noSoalVal,
+            tipe: tipeVal || "PG",
+            pertanyaan: pertanyaanVal,
+            opA: opA,
+            opB: opB,
+            opC: opC,
+            opD: opD,
+            kunci: kunciVal,
+            skor: skorVal
+          };
+        });
 
         tampilkanHasilKonversi(listSoal);
       } catch (err) {
