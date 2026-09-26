@@ -134,7 +134,7 @@
               </select>
             </div>
 
-            <!-- ENHANCEMENT: ISIAN DAFTAR KELAS PESERTA UJIAN -->
+            <!-- ISIAN DAFTAR KELAS PESERTA UJIAN -->
             <div class="col-md-12">
               <label class="form-label fw-bold">Daftar Kelas (Peserta Ujian)</label>
               <input type="text" id="cfgDaftarKelas" class="form-control" placeholder="Contoh: X IPA 1, X IPA 2, X IPS 1 (Pisahkan dengan tanda koma)">
@@ -181,7 +181,13 @@
     <!-- TAB 2: IMPORT / UPLOAD SOAL -->
     <div class="tab-pane fade no-print" id="tab-import">
       <div class="card card-custom p-4 bg-white">
-        <h5 class="mb-3 fw-bold">Upload & Konversi File Soal</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0">Upload & Konversi File Soal</h5>
+          <!-- TOMBOL DOWNLOAD FORMAT FILE EXCEL A-D -->
+          <button type="button" class="btn btn-outline-success btn-sm fw-bold" onClick="downloadTemplateExcel()">
+            📥 Download Format File Excel (.xlsx)
+          </button>
+        </div>
         
         <div class="drop-zone text-center mb-4" onClick="document.getElementById('fileInputSoal').click()">
           <div class="display-5 text-primary mb-2">📄</div>
@@ -201,7 +207,8 @@
           <textarea id="jsonSoalInput" class="form-control font-monospace" rows="10" placeholder='Hasil konversi otomatis dari Excel/Word akan muncul di sini...'></textarea>
         </div>
 
-        <button class="btn btn-primary btn-lg w-100 fw-bold" onClick="prosesImportSoal()">
+        <!-- TOMBOL SIMPAN SOAL -->
+        <button type="button" id="btnSimpanSoal" class="btn btn-primary btn-lg w-100 fw-bold" onClick="prosesImportSoal()">
           💾 Simpan Semua Soal ke Database
         </button>
       </div>
@@ -302,7 +309,7 @@
                 <th style="width: 60px;">No</th>
                 <th style="width: 80px;">Tipe</th>
                 <th style="width: 80px;">Kunci</th>
-                <th>Sebaran Jawaban (A / B / C / D / E)</th>
+                <th>Sebaran Jawaban (A / B / C / D)</th>
                 <th style="width: 90px;">Benar</th>
                 <th style="width: 90px;">Salah</th>
                 <th style="width: 120px;">% Kesukaran</th>
@@ -524,6 +531,72 @@
     return kode;
   }
 
+// FUNGSI MEMBUAT & MENGUNDUH TEMPLATE EXCEL DENGAN FORMAT TEKS (@)
+  function downloadTemplateExcel() {
+    const kode = document.getElementById("kodeSoalInput").value.trim().toUpperCase() || "ATS-MTK7";
+    
+    // Structure Data Hanya Sampai Opsi D
+    const dataTemplate = [
+      {
+        "Kode Soal": kode,
+        "No Soal": 1,
+        "Tipe": "PG",
+        "Pertanyaan": "Hasil dari 1/2 + 3/4 adalah...",
+        "Opsi A": "1 1/4",
+        "Opsi B": "5/4",
+        "Opsi C": "2/4",
+        "Opsi D": "3/2",
+        "Kunci": "A",
+        "Skor": 2
+      },
+      {
+        "Kode Soal": kode,
+        "No Soal": 2,
+        "Tipe": "ESSAI",
+        "Pertanyaan": "Jelaskan langkah-langkah penjumlahan pecahan 1/2 dan 3/4!",
+        "Opsi A": "",
+        "Opsi B": "",
+        "Opsi C": "",
+        "Opsi D": "",
+        "Kunci": "-",
+        "Skor": 10
+      }
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(dataTemplate);
+
+    // KUNCI DAN PAKSA SELURUH BARIS DARI KOLOM A SAMPAI J MENJADI FORMAT TEXT (@)
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!worksheet[cell_address]) continue;
+
+        // Paksa tipe sel menjadi String ('s') dan format angka menjadi Text ('@')
+        worksheet[cell_address].t = 's';
+        worksheet[cell_address].z = '@';
+      }
+    }
+
+    // Mengatur lebar kolom agar lebih rapi saat dibuka
+    worksheet['!cols'] = [
+      { wch: 15 }, // Kode Soal
+      { wch: 8 },  // No Soal
+      { wch: 10 }, // Tipe
+      { wch: 50 }, // Pertanyaan
+      { wch: 20 }, // Opsi A
+      { wch: 20 }, // Opsi B
+      { wch: 20 }, // Opsi C
+      { wch: 20 }, // Opsi D
+      { wch: 10 }, // Kunci
+      { wch: 8 }   // Skor
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bank Soal");
+    XLSX.writeFile(workbook, `Template_Import_Soal_${kode}.xlsx`);
+  }
+
   async function prosesTambahGuru() {
     const username = document.getElementById("addUsernameGuru").value.trim();
     const nama = document.getElementById("addNamaGuru").value.trim();
@@ -557,101 +630,91 @@
     }
   }
 
-  // UPDATE: MEMUAT PENGATURAN TERMASUK DAFTAR KELAS
-async function muatDataSoal() {
-  const kode = getKodeSoal();
-  if (!kode) return;
+  async function muatDataSoal() {
+    const kode = getKodeSoal();
+    if (!kode) return;
 
-  const btn = document.getElementById("btnMuatPengaturan");
-  
-  // 1. SIMPAN TEKS ASLI TOMBOL & TAMPILKAN ANIMASI SPINNER
-  const teksAsli = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Memuat Data...`;
-
-  try {
-    const data = await apiPost({ action: "getPengaturan", kode: kode });
+    const btn = document.getElementById("btnMuatPengaturan");
     
-    if (data.status === "success" && data.data) {
-      const cfg = Array.isArray(data.data) ? (data.data[0] || {}) : data.data;
+    const teksAsli = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Memuat Data...`;
 
-      if (!cfg || Object.keys(cfg).length === 0) {
-        alert(`Pengaturan untuk kode '${kode}' belum diset. Silakan isi form lalu klik 'Simpan Pengaturan'.`);
-        return;
-      }
-
-      document.getElementById("cfgKodeUjian").value = kode;
-      document.getElementById("cfgDurasi").value = cfg.durasi || 90;
-      document.getElementById("cfgPenyusun").value = cfg.penyusun || cfg.nama_ujian || "";
-      document.getElementById("cfgPengawas").value = cfg.pengawas || "";
+    try {
+      const data = await apiPost({ action: "getPengaturan", kode: kode });
       
-      // Memuat Daftar Kelas
-      document.getElementById("cfgDaftarKelas").value = cfg.daftar_kelas || cfg.kelas || "";
+      if (data.status === "success" && data.data) {
+        const cfg = Array.isArray(data.data) ? (data.data[0] || {}) : data.data;
 
-      selectDropdownValue("cfgJenisUjian", cfg.jenis_ujian || "");
-      selectDropdownValue("cfgStatus", cfg.status_ujian || cfg.status || "Aktif");
-      selectDropdownValue("cfgAcak", cfg.acak_soal || "Tidak");
+        if (!cfg || Object.keys(cfg).length === 0) {
+          alert(`Pengaturan untuk kode '${kode}' belum diset. Silakan isi form lalu klik 'Simpan Pengaturan'.`);
+          return;
+        }
 
-      alert(`Data pengaturan untuk kode '${kode}' berhasil dimuat.`);
-    } else {
-      alert(data.message || `Data pengaturan untuk kode '${kode}' belum diset. Silakan isi form dan simpan terlebih dahulu.`);
+        document.getElementById("cfgKodeUjian").value = kode;
+        document.getElementById("cfgDurasi").value = cfg.durasi || 90;
+        document.getElementById("cfgPenyusun").value = cfg.penyusun || cfg.nama_ujian || "";
+        document.getElementById("cfgPengawas").value = cfg.pengawas || "";
+        document.getElementById("cfgDaftarKelas").value = cfg.daftar_kelas || cfg.kelas || "";
+
+        selectDropdownValue("cfgJenisUjian", cfg.jenis_ujian || "");
+        selectDropdownValue("cfgStatus", cfg.status_ujian || cfg.status || "Aktif");
+        selectDropdownValue("cfgAcak", cfg.acak_soal || "Tidak");
+
+        alert(`Data pengaturan untuk kode '${kode}' berhasil dimuat.`);
+      } else {
+        alert(data.message || `Data pengaturan untuk kode '${kode}' belum diset. Silakan isi form dan simpan terlebih dahulu.`);
+      }
+    } catch (e) {
+      alert("Gagal memuat pengaturan: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = teksAsli;
     }
-  } catch (e) {
-    alert("Gagal memuat pengaturan: " + e.message);
-  } finally {
-    // 2. KEMBALIKAN TOMBOL KE TAMPILAN SEMULA
-    btn.disabled = false;
-    btn.innerHTML = teksAsli;
   }
-}
 
-  // UPDATE: MENYIMPAN PENGATURAN TERMASUK DAFTAR KELAS
-async function simpanPengaturan() {
-  const kode = getKodeSoal();
-  if (!kode) return;
+  async function simpanPengaturan() {
+    const kode = getKodeSoal();
+    if (!kode) return;
 
-  // 1. AMBIL ELEMEN TOMBOL & EFEK ANIMASI LOADING
-  const btn = document.querySelector("#formPengaturan button[onClick='simpanPengaturan()']") || 
-              event.currentTarget;
-  const teksAsli = btn.innerHTML;
+    const btn = document.querySelector("#formPengaturan button[onClick='simpanPengaturan()']") || event.currentTarget;
+    const teksAsli = btn.innerHTML;
 
-  btn.disabled = true;
-  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan Pengaturan...`;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan Pengaturan...`;
 
-  // Mengambil elemen input dengan aman
-  const elJenis = document.getElementById("cfgJenisUjian");
-  const elDurasi = document.getElementById("cfgDurasi");
-  const elPenyusun = document.getElementById("cfgPenyusun");
-  const elPengawas = document.getElementById("cfgPengawas");
-  const elStatus = document.getElementById("cfgStatus");
-  const elAcak = document.getElementById("cfgAcak");
-  const elKelas = document.getElementById("cfgDaftarKelas");
+    const elJenis = document.getElementById("cfgJenisUjian");
+    const elDurasi = document.getElementById("cfgDurasi");
+    const elPenyusun = document.getElementById("cfgPenyusun");
+    const elPengawas = document.getElementById("cfgPengawas");
+    const elStatus = document.getElementById("cfgStatus");
+    const elAcak = document.getElementById("cfgAcak");
+    const elKelas = document.getElementById("cfgDaftarKelas");
 
-  const payload = {
-    action: "savePengaturan",
-    kode_soal: kode,
-    jenis_ujian: elJenis ? elJenis.value : "",
-    durasi: elDurasi ? (parseInt(elDurasi.value) || 90) : 90,
-    penyusun: elPenyusun ? elPenyusun.value : "",
-    pengawas: elPengawas ? elPengawas.value : "",
-    status_ujian: elStatus ? elStatus.value : "Aktif",
-    acak_soal: elAcak ? elAcak.value : "Tidak",
-    kelas: elKelas ? elKelas.value.trim() : ""
-  };
+    const payload = {
+      action: "savePengaturan",
+      kode_soal: kode,
+      jenis_ujian: elJenis ? elJenis.value : "",
+      durasi: elDurasi ? (parseInt(elDurasi.value) || 90) : 90,
+      penyusun: elPenyusun ? elPenyusun.value : "",
+      pengawas: elPengawas ? elPengawas.value : "",
+      status_ujian: elStatus ? elStatus.value : "Aktif",
+      acak_soal: elAcak ? elAcak.value : "Tidak",
+      kelas: elKelas ? elKelas.value.trim() : ""
+    };
 
-  try {
-    const result = await apiPost(payload);
-    alert(result.message || "Pengaturan berhasil disimpan!");
-  } catch (e) {
-    alert("Gagal menyimpan pengaturan: " + e.message);
-  } finally {
-    // 2. KEMBALIKAN TOMBOL KE TAMPILAN SEMULA
-    btn.disabled = false;
-    btn.innerHTML = teksAsli;
+    try {
+      const result = await apiPost(payload);
+      alert(result.message || "Pengaturan berhasil disimpan!");
+    } catch (e) {
+      alert("Gagal menyimpan pengaturan: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = teksAsli;
+    }
   }
-}
 
-  // PARSER FILE
+  // PARSER FILE EXCEL (HANYA MENGGUNAKAN OPSI A-D)
   function prosesUploadFile(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -686,14 +749,13 @@ async function simpanPengaturan() {
         const rawJson = XLSX.utils.sheet_to_json(sheet);
 
         const listSoal = rawJson.map((row, index) => ({
-          no_soal: parseInt(row.no_soal || row["No"] || row["NO"] || (index + 1)),
+          no_soal: parseInt(row.no_soal || row["No Soal"] || row["No"] || row["NO"] || (index + 1)),
           tipe: String(row.tipe || row["Tipe"] || "PG").trim().toUpperCase(),
           pertanyaan: String(row.pertanyaan || row["Pertanyaan"] || row["Soal"] || ""),
-          opA: String(row.opA || row["A"] || row["Opsi A"] || ""),
-          opB: String(row.opB || row["B"] || row["Opsi B"] || ""),
-          opC: String(row.opC || row["C"] || row["Opsi C"] || ""),
-          opD: String(row.opD || row["D"] || row["Opsi D"] || ""),
-          opE: String(row.opE || row["E"] || row["Opsi E"] || ""),
+          opA: String(row.opA || row["Opsi A"] || row["A"] || ""),
+          opB: String(row.opB || row["Opsi B"] || row["B"] || ""),
+          opC: String(row.opC || row["Opsi C"] || row["C"] || ""),
+          opD: String(row.opD || row["Opsi D"] || row["D"] || ""),
           kunci: String(row.kunci || row["Kunci"] || row["Jawaban"] || "").trim().toUpperCase(),
           skor: parseInt(row.skor || row["Skor"] || 2)
         }));
@@ -740,14 +802,13 @@ async function simpanPengaturan() {
         if (lines.length < 2) return;
 
         let pertanyaan = lines[0].replace(/^\d+[\.\)]\s*/, '');
-        let opA = "", opB = "", opC = "", opD = "", opE = "", kunci = "A", tipe = "PG";
+        let opA = "", opB = "", opC = "", opD = "", kunci = "A", tipe = "PG";
 
         lines.forEach(line => {
           if (/^[A|a][\.\)]/.test(line)) opA = line.replace(/^[A|a][\.\)]\s*/, '');
           else if (/^[B|b][\.\)]/.test(line)) opB = line.replace(/^[B|b][\.\)]\s*/, '');
           else if (/^[C|c][\.\)]/.test(line)) opC = line.replace(/^[C|c][\.\)]\s*/, '');
           else if (/^[D|d][\.\)]/.test(line)) opD = line.replace(/^[D|d][\.\)]\s*/, '');
-          else if (/^[E|e][\.\)]/.test(line)) opE = line.replace(/^[E|e][\.\)]\s*/, '');
           else if (/^(Kunci|Jawaban):/i.test(line)) kunci = line.split(':')[1].trim().toUpperCase();
           else if (/^(Tipe):/i.test(line)) tipe = line.split(':')[1].trim().toUpperCase();
         });
@@ -761,7 +822,6 @@ async function simpanPengaturan() {
             opB: opB,
             opC: opC,
             opD: opD,
-            opE: opE,
             kunci: kunci || "A",
             skor: 2
           });
@@ -806,6 +866,11 @@ async function simpanPengaturan() {
       return;
     }
 
+    const btnSimpan = document.getElementById("btnSimpanSoal");
+    const teksAsli = btnSimpan.innerHTML;
+    btnSimpan.disabled = true;
+    btnSimpan.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan Soal Ke Database...`;
+
     const payload = {
       action: "importSoal",
       kode_soal: kode,
@@ -817,6 +882,9 @@ async function simpanPengaturan() {
       alert(result.message || "Soal berhasil diimport!");
     } catch (e) {
       alert("Gagal mengimport soal: " + e.message);
+    } finally {
+      btnSimpan.disabled = false;
+      btnSimpan.innerHTML = teksAsli;
     }
   }
 
@@ -908,46 +976,39 @@ async function simpanPengaturan() {
     });
   }
 
-// 1. FUNGSI FILTER & SEARCH SISWA (DI-UPDATE)
-function filterHasilUjian() {
-  const searchInput = document.getElementById("searchSiswaInput");
-  const filterKelasInput = document.getElementById("filterKelasSelect");
+  function filterHasilUjian() {
+    const searchInput = document.getElementById("searchSiswaInput");
+    const filterKelasInput = document.getElementById("filterKelasSelect");
 
-  const search = searchInput ? searchInput.value.toLowerCase().trim() : "";
-  const filterKelas = filterKelasInput ? filterKelasInput.value.trim() : "";
+    const search = searchInput ? searchInput.value.toLowerCase().trim() : "";
+    const filterKelas = filterKelasInput ? filterKelasInput.value.trim() : "";
 
-  filteredHasil = rawDataHasil.filter(item => {
-    // Ambil nilai nama & no_peserta secara aman
-    const nama = String(item.nama || "").toLowerCase();
-    const noPeserta = String(item.no_peserta || item.noPeserta || item.nis || "").toLowerCase();
-    const kelas = String(item.kelas || "").trim();
+    filteredHasil = rawDataHasil.filter(item => {
+      const nama = String(item.nama || "").toLowerCase();
+      const noPeserta = String(item.no_peserta || item.noPeserta || item.nis || "").toLowerCase();
+      const kelas = String(item.kelas || "").trim();
 
-    // Cek apakah kecocokan kata kunci pencarian ada pada Nama ATAU No Peserta
-    const matchSearch = search === "" || nama.includes(search) || noPeserta.includes(search);
-    
-    // Cek kecocokan filter kelas
-    const matchKelas = filterKelas === "" || kelas === filterKelas;
+      const matchSearch = search === "" || nama.includes(search) || noPeserta.includes(search);
+      const matchKelas = filterKelas === "" || kelas === filterKelas;
 
-    return matchSearch && matchKelas;
-  });
+      return matchSearch && matchKelas;
+    });
 
-  // Render ulang tabel dengan hasil filter & perbarui kartu statistik
-  renderTabelHasil(filteredHasil);
-  updateStatistikUjian(filteredHasil);
-}
+    renderTabelHasil(filteredHasil);
+    updateStatistikUjian(filteredHasil);
+  }
 
-// 2. FUNGSI RESET FILTER (DI-UPDATE)
-function resetFilterHasil() {
-  const searchInput = document.getElementById("searchSiswaInput");
-  const filterKelasInput = document.getElementById("filterKelasSelect");
+  function resetFilterHasil() {
+    const searchInput = document.getElementById("searchSiswaInput");
+    const filterKelasInput = document.getElementById("filterKelasSelect");
 
-  if (searchInput) searchInput.value = "";
-  if (filterKelasInput) filterKelasInput.value = "";
+    if (searchInput) searchInput.value = "";
+    if (filterKelasInput) filterKelasInput.value = "";
 
-  filteredHasil = [...rawDataHasil];
-  renderTabelHasil(filteredHasil);
-  updateStatistikUjian(filteredHasil);
-}
+    filteredHasil = [...rawDataHasil];
+    renderTabelHasil(filteredHasil);
+    updateStatistikUjian(filteredHasil);
+  }
 
   function updateStatistikUjian(dataList = rawDataHasil) {
     if (!dataList || dataList.length === 0) {
@@ -968,45 +1029,44 @@ function resetFilterHasil() {
     document.getElementById("statMin").innerText = min;
   }
 
-async function hapusHasilSiswa(noPeserta, btnElement) {
-  const kode = getKodeSoal();
-  if (!kode) return;
+  async function hapusHasilSiswa(noPeserta, btnElement) {
+    const kode = getKodeSoal();
+    if (!kode) return;
 
-  if (!confirm(`Apakah Anda yakin ingin menghapus data hasil ujian peserta dengan No/NIS: ${noPeserta}?`)) return;
+    if (!confirm(`Apakah Anda yakin ingin menghapus data hasil ujian peserta dengan No/NIS: ${noPeserta}?`)) return;
 
-  // Animasi Tombol Hapus (Disabled & Spinner)
-  const btn = btnElement || (event ? event.currentTarget : null);
-  let teksAsli = "";
-  if (btn) {
-    teksAsli = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
-  }
-
-  try {
-    const payload = { 
-      action: "hapusHasilUjian", 
-      kode_soal: kode, 
-      no_peserta: String(noPeserta).trim() 
-    };
-    
-    const result = await apiPost(payload);
-    
-    if (result.status === "success") {
-      alert(result.message || "Data peserta berhasil dihapus!");
-      muatHasilUjian(); // Refresh tabel setelah dihapus
-    } else {
-      alert("Gagal menghapus: " + result.message);
-    }
-  } catch (e) {
-    alert("Terjadi kesalahan koneksi saat menghapus data: " + e.message);
-  } finally {
+    const btn = btnElement || (event ? event.currentTarget : null);
+    let teksAsli = "";
     if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = teksAsli;
+      teksAsli = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+    }
+
+    try {
+      const payload = { 
+        action: "hapusHasilUjian", 
+        kode_soal: kode, 
+        no_peserta: String(noPeserta).trim() 
+      };
+      
+      const result = await apiPost(payload);
+      
+      if (result.status === "success") {
+        alert(result.message || "Data peserta berhasil dihapus!");
+        muatHasilUjian();
+      } else {
+        alert("Gagal menghapus: " + result.message);
+      }
+    } catch (e) {
+      alert("Terjadi kesalahan koneksi saat menghapus data: " + e.message);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = teksAsli;
+      }
     }
   }
-}
 
   function bukaModalEssai(index) {
     selectedIndexHasil = index;
@@ -1082,58 +1142,55 @@ async function hapusHasilSiswa(noPeserta, btnElement) {
     document.getElementById("inputNilaiEssaiModal").value = total;
   }
 
-async function simpanNilaiEssai() {
-  if (selectedIndexHasil < 0) return;
+  async function simpanNilaiEssai() {
+    if (selectedIndexHasil < 0) return;
 
-  // 1. AMBIL ELEMEN TOMBOL & TAMPILKAN ANIMASI LOADING
-  const btn = document.querySelector("#modalEssai .modal-footer button[onClick='simpanNilaiEssai()']") || 
-              event.currentTarget;
-  const teksAsli = btn.innerHTML;
+    const btn = document.querySelector("#modalEssai .modal-footer button[onClick='simpanNilaiEssai()']") || event.currentTarget;
+    const teksAsli = btn.innerHTML;
 
-  btn.disabled = true;
-  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan Nilai...`;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan Nilai...`;
 
-  const item = rawDataHasil[selectedIndexHasil];
-  const detailNilaiPerNomor = {};
-  let totalNilaiEssai = 0;
+    const item = rawDataHasil[selectedIndexHasil];
+    const detailNilaiPerNomor = {};
+    let totalNilaiEssai = 0;
 
-  const inputs = document.querySelectorAll(".input-nilai-per-soal");
-  inputs.forEach(input => {
-    const key = input.getAttribute("data-key");
-    const val = parseFloat(input.value) || 0;
-    detailNilaiPerNomor[key] = val;
-    totalNilaiEssai += val;
-  });
+    const inputs = document.querySelectorAll(".input-nilai-per-soal");
+    inputs.forEach(input => {
+      const key = input.getAttribute("data-key");
+      const val = parseFloat(input.value) || 0;
+      detailNilaiPerNomor[key] = val;
+      totalNilaiEssai += val;
+    });
 
-  const payload = {
-    action: "simpanNilaiEssai",
-    kode_soal: getKodeSoal(),
-    no_peserta: item.no_peserta,
-    nilai_essai: totalNilaiEssai,
-    detail_nilai_essai: detailNilaiPerNomor
-  };
+    const payload = {
+      action: "simpanNilaiEssai",
+      kode_soal: getKodeSoal(),
+      no_peserta: item.no_peserta,
+      nilai_essai: totalNilaiEssai,
+      detail_nilai_essai: detailNilaiPerNomor
+    };
 
-  try {
-    const result = await apiPost(payload);
-    if (result.status === "success") {
-      rawDataHasil[selectedIndexHasil].nilai_essai = totalNilaiEssai;
-      rawDataHasil[selectedIndexHasil].detail_nilai_essai = detailNilaiPerNomor;
-      filterHasilUjian();
-      modalEssaiInstance.hide();
-      alert("Rincian Nilai Essai per nomor berhasil disimpan!");
-    } else {
-      alert("Gagal menyimpan nilai: " + result.message);
+    try {
+      const result = await apiPost(payload);
+      if (result.status === "success") {
+        rawDataHasil[selectedIndexHasil].nilai_essai = totalNilaiEssai;
+        rawDataHasil[selectedIndexHasil].detail_nilai_essai = detailNilaiPerNomor;
+        filterHasilUjian();
+        modalEssaiInstance.hide();
+        alert("Rincian Nilai Essai per nomor berhasil disimpan!");
+      } else {
+        alert("Gagal menyimpan nilai: " + result.message);
+      }
+    } catch (e) {
+      alert("Terjadi kesalahan koneksi saat menyimpan nilai: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = teksAsli;
     }
-  } catch (e) {
-    alert("Terjadi kesalahan koneksi saat menyimpan nilai: " + e.message);
-  } finally {
-    // 2. KEMBALIKAN TOMBOL KE TAMPILAN SEMULA
-    btn.disabled = false;
-    btn.innerHTML = teksAsli;
   }
-}
 
-  // ANALISIS SOAL
+  // ANALISIS SOAL (DIKONDISIKAN UNTUK OPSI A-D)
   async function muatAnalisisSoal() {
     const kode = getKodeSoal();
     if (!kode) return;
@@ -1161,9 +1218,9 @@ async function simpanNilaiEssai() {
           if (item.kategori === "Sukar") badgeKategori = "bg-danger";
 
           const isPG = item.tipe === "PG" || item.tipe === "PILGAN";
-          const seb = item.sebaran || { A:0, B:0, C:0, D:0, E:0 };
+          const seb = item.sebaran || { A:0, B:0, C:0, D:0 };
           const sebaranText = isPG 
-            ? `A: <b>${seb.A || 0}</b> | B: <b>${seb.B || 0}</b> | C: <b>${seb.C || 0}</b> | D: <b>${seb.D || 0}</b>${seb.E !== undefined ? ` | E: <b>${seb.E}</b>` : ''}`
+            ? `A: <b>${seb.A || 0}</b> | B: <b>${seb.B || 0}</b> | C: <b>${seb.C || 0}</b> | D: <b>${seb.D || 0}</b>`
             : `<i class="text-muted">Soal Essai (Manual)</i>`;
 
           const row = `
@@ -1207,7 +1264,6 @@ async function simpanNilaiEssai() {
         "Opsi B": seb.B || 0,
         "Opsi C": seb.C || 0,
         "Opsi D": seb.D || 0,
-        "Opsi E": seb.E || 0,
         "% Kesukaran": item.tingkat_kesukaran,
         "Kategori": item.kategori
       };
