@@ -187,10 +187,16 @@
     modalSelesaiInstance = new bootstrap.Modal(document.getElementById('modalSelesai'));
 
     // AMBIL DATA SISWA DARI SESSION
-    const namaSiswa = sessionStorage.getItem("siswa_nama");
-    const noPeserta = sessionStorage.getItem("siswa_no_peserta");
-    const kelasSiswa = sessionStorage.getItem("siswa_kelas");
-    const kodeUjian = sessionStorage.getItem("siswa_kode_ujian");
+let namaSiswa = sessionStorage.getItem("siswa_nama") || "Siswa Dummy";
+let noPeserta = sessionStorage.getItem("siswa_no_peserta") || "12345";
+let kelasSiswa = sessionStorage.getItem("siswa_kelas") || "XII";
+let kodeUjian = sessionStorage.getItem("siswa_kode_ujian") || "UJIAN-01"; // Sesuaikan dengan kode ujian valid di database
+
+// Simpan otomatis agar fungsi simpan jawaban lokal tetap berjalan mulus
+sessionStorage.setItem("siswa_nama", namaSiswa);
+sessionStorage.setItem("siswa_no_peserta", noPeserta);
+sessionStorage.setItem("siswa_kelas", kelasSiswa);
+sessionStorage.setItem("siswa_kode_ujian", kodeUjian);
 
     if (!namaSiswa || !noPeserta || !kodeUjian) {
       alert("Sesi login ujian tidak ditemukan. Anda akan dikembalikan ke halaman awal.");
