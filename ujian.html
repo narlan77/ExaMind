@@ -338,6 +338,7 @@ async function mulaiKonfirmasiUjian(event) {
 
     if (teksPertanyaan && (teksPertanyaan.trim().toUpperCase() === "PG" || teksPertanyaan.trim().toUpperCase() === "ESSAI" || teksPertanyaan.trim().toUpperCase() === "ESSAY")) {
       tipeSoal = teksPertanyaan.trim().toUpperCase();
+
       // Terjadi pergeseran kolom dari server: Soal ada di opA, Opsi A ada di opB, dst.
       teksPertanyaan = item.opA;
       opA = item.opB;
@@ -371,6 +372,11 @@ async function mulaiKonfirmasiUjian(event) {
     } 
     // JIKA TIPE SOAL ADALAH PILIHAN GANDA (PG)
     else {
+        // Sebelum opsi ditampilkan di HTML:
+        opA = fixPecahanDariTanggal(opA);
+        opB = fixPecahanDariTanggal(opB);
+        opC = fixPecahanDariTanggal(opC);
+        opD = fixPecahanDariTanggal(opD);
       const pilihan = [
         { key: "A", val: opA },
         { key: "B", val: opB },
@@ -772,6 +778,27 @@ async function refreshKodeSoal() {
     }
   }
 }
+
+function fixPecahanDariTanggal(val) {
+  if (!val) return "";
+  let str = String(val).trim();
+  
+  const mapBulan = {
+    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'mei': 5,
+    'jun': 6, 'jul': 7, 'aug': 8, 'agu': 8, 'sep': 9, 'oct': 10,
+    'okt': 10, 'nov': 11, 'dec': 12, 'des': 12
+  };
+
+  const match = str.match(/^(\d{1,2})[-/]([a-zA-Z]{3})$/i);
+  if (match) {
+    const pembilang = parseInt(match[1], 10);
+    const penyebut = mapBulan[match[2].toLowerCase()];
+    if (penyebut) return `${pembilang}/${penyebut}`;
+  }
+  
+  return str;
+}
+
 </script>
 </body>
 </html>
