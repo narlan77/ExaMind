@@ -126,10 +126,65 @@
             </div>
 
             <!-- FITUR BARU: INPUT MATA PELAJARAN -->
-            <div class="col-md-4">
-              <label class="form-label fw-bold">Mata Pelajaran (Mapel)</label>
-              <input type="text" id="cfgMapel" class="form-control" placeholder="Contoh: Matematika, Bahasa Indonesia">
-            </div>
+<div class="mb-3">
+  <label for="mapel" class="form-label fw-bold">Mata Pelajaran (Mapel)</label>
+  <select class="form-select" id="mapel" name="mapel" required>
+    <option value="" disabled selected>-- Pilih Mata Pelajaran --</option>
+    
+    <!-- Kelompok Agama & Moral -->
+    <optgroup label="Pendidikan Agama & Budi Pekerti">
+      <option value="Pendidikan Agama Islam">Pendidikan Agama Islam</option>
+      <option value="Pendidikan Agama Kristen">Pendidikan Agama Kristen</option>
+      <option value="Pendidikan Agama Katolik">Pendidikan Agama Katolik</option>
+      <option value="Pendidikan Agama Hindu">Pendidikan Agama Hindu</option>
+      <option value="Pendidikan Agama Buddha">Pendidikan Agama Buddha</option>
+      <option value="Pendidikan Agama Khonghucu">Pendidikan Agama Khonghucu</option>
+    </optgroup>
+
+    <!-- Kelompok Mata Pelajaran Umum -->
+    <optgroup label="Mata Pelajaran Umum">
+      <option value="Pendidikan Pancasila / PKn">Pendidikan Pancasila / PKn</option>
+      <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+      <option value="Matematika">Matematika</option>
+      <option value="Bahasa Inggris">Bahasa Inggris</option>
+      <option value="Informatika">Informatika</option>
+      <option value="Pendidikan Jasmani, Olahraga & Kesehatan">Pendidikan Jasmani, Olahraga & Kesehatan (PJOK)</option>
+      <option value="Seni Budaya">Seni Budaya</option>
+      <option value="Prakarya">Prakarya</option>
+      <option value="Sejarah">Sejarah</option>
+    </optgroup>
+
+    <!-- Kelompok IPA & IPS (SMP / SMA) -->
+    <optgroup label="Sains & Sosial (IPA / IPS)">
+      <option value="IPAS">IPAS (Ilmu Pengetahuan Alam dan Sosial - SD)</option>
+      <option value="IPA Terpadu">IPA Terpadu (SMP)</option>
+      <option value="IPS Terpadu">IPS Terpadu (SMP)</option>
+      <option value="Fisika">Fisika</option>
+      <option value="Kimia">Kimia</option>
+      <option value="Biologi">Biologi</option>
+      <option value="Sosiologi">Sosiologi</option>
+      <option value="Ekonomi">Ekonomi</option>
+      <option value="Geografi">Geografi</option>
+    </optgroup>
+
+    <!-- Kelompok Khusus Madrasah (MI / MTs / MA) -->
+    <optgroup label="Pendidikan Agama Islam (Madrasah)">
+      <option value="Al-Qur'an Hadis">Al-Qur'an Hadis</option>
+      <option value="Aqidah Akhlak">Aqidah Akhlak</option>
+      <option value="Fiqih">Fiqih</option>
+      <option value="Sejarah Kebudayaan Islam (SKI)">Sejarah Kebudayaan Islam (SKI)</option>
+      <option value="Bahasa Arab">Bahasa Arab</option>
+    </optgroup>
+
+    <!-- Muatan Lokal & Kejuruan -->
+    <optgroup label="Muatan Lokal & Lainnya">
+      <option value="Bahasa Sunda">Bahasa Sunda</option>
+      <option value="Bahasa Jawa">Bahasa Jawa</option>
+      <option value="Kejuruan / Produktif SMK">Kejuruan / Produktif SMK</option>
+      <option value="Bimbingan Konseling (BK)">Bimbingan Konseling (BK)</option>
+    </optgroup>
+  </select>
+</div>
             
             <div class="col-md-4">
               <label class="form-label fw-bold">Jenis Ujian</label>
