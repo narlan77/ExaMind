@@ -64,7 +64,6 @@
       <div class="col-md-7 mb-2 mb-md-0">
         <div class="d-flex align-items-center gap-2 mb-1">
           <span class="badge bg-primary fs-6" id="txtJenisUjian">Ujian Online</span>
-          <!-- FITUR BARU: DISPLAY MATA PELAJARAN -->
           <span class="badge bg-success fs-6" id="txtMapelUjian">Mata Pelajaran: -</span>
         </div>
         <h5 class="fw-bold mb-0 text-dark" id="txtKodeUjian">Kode Ujian: -</h5>
@@ -108,11 +107,11 @@
         <!-- TOMBOL NAVIGASI SOAL -->
         <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-4">
           <button class="btn btn-outline-secondary fw-bold" id="btnPrev" onClick="soalSebelumnya()">
-            ⬅️ Sebelumnya
+            &laquo; Sebelumnya
           </button>
           
           <button class="btn btn-primary fw-bold" id="btnNext" onClick="soalBerikutnya()">
-            Berikutnya ➡️
+            Berikutnya &raquo;
           </button>
         </div>
       </div>
@@ -121,7 +120,7 @@
     <!-- KOLOM KANAN: NAVIGASI NOMOR SOAL & SUBMIT -->
     <div class="col-lg-4">
       <div class="card card-custom p-3 bg-white">
-        <h6 class="fw-bold mb-3 border-bottom pb-2 text-center">📌 Navigasi Soal</h6>
+        <h6 class="fw-bold mb-3 border-bottom pb-2 text-center">Navigasi Soal</h6>
         
         <!-- GRID TOMBOL NOMOR SOAL -->
         <div class="d-flex flex-wrap justify-content-center mb-3" id="containerNomorSoal"></div>
@@ -135,7 +134,7 @@
         </div>
 
         <button class="btn btn-danger btn-lg w-100 fw-bold" onClick="konfirmasiSelesaiUjian()">
-          🏁 Selesai & Kirim Ujian
+          Selesai & Kirim Ujian
         </button>
       </div>
     </div>
@@ -148,7 +147,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title fw-bold">⚠️ Konfirmasi Selesai Ujian</h5>
+        <h5 class="modal-title fw-bold">Konfirmasi Selesai Ujian</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -172,6 +171,7 @@
   let sisaWaktuDetik = 0;
   let timerInterval = null;
   let modalSelesaiInstance = null;
+  let mataPelajaranUjian = ""; // Menyimpan nama mata pelajaran
 
   async function apiPost(payload) {
     const res = await fetch(API_URL, {
@@ -221,11 +221,11 @@
         const cfg = Array.isArray(cfgRes.data) ? (cfgRes.data[0] || {}) : cfgRes.data;
         
         // TAMPILKAN NAMA MAPEL & JENIS UJIAN
-        const mapelName = cfg.mata_pelajaran || cfg.mapel || "Mata Pelajaran Ujian";
-        document.getElementById("txtMapelUjian").innerText = mapelName;
+        mataPelajaranUjian = cfg.mata_pelajaran || cfg.mapel || "";
+        document.getElementById("txtMapelUjian").innerText = mataPelajaranUjian ? "Mapel: " + mataPelajaranUjian : "Mata Pelajaran Ujian";
         document.getElementById("txtJenisUjian").innerText = cfg.jenis_ujian || "Ujian Online";
 
-        // DURASI WAKTU (DALAM DETIK)
+        // DURASI WAKTU (DALAM MENIT -> DETIK)
         const durasiMenit = parseInt(cfg.durasi) || 90;
         
         // CEK TIMESTAMPS AWAL / SISAKAN WAKTU DARI LOCAL STORAGE
@@ -244,10 +244,10 @@
         }
       }
 
-      // 2. MUAT LIST SOAL UJIAN
-      const soalRes = await apiPost({ action: "getHasilUjian", kode_soal: kode });
-      if (soalRes.status === "success" && soalRes.bank_soal && soalRes.bank_soal.length > 0) {
-        listSoal = soalRes.bank_soal;
+      // 2. MUAT LIST SOAL UJIAN (Menggunakan action getSoalSiswa)
+      const soalRes = await apiPost({ action: "getSoalSiswa", kode: kode, kode_soal: kode });
+      if (soalRes.status === "success" && soalRes.soal && soalRes.soal.length > 0) {
+        listSoal = soalRes.soal;
         renderNavigasiNomor();
         tampilkanSoal(0);
       } else {
@@ -335,7 +335,7 @@
 
     // UPDATE STATE TOMBOL PREV/NEXT
     document.getElementById("btnPrev").disabled = (idx === 0);
-    document.getElementById("btnNext").innerText = (idx === listSoal.length - 1) ? "Selesai 🏁" : "Berikutnya ➡️";
+    document.getElementById("btnNext").innerText = (idx === listSoal.length - 1) ? "Selesai" : "Berikutnya \u00BB";
 
     renderNavigasiNomor();
   }
@@ -431,6 +431,7 @@
       no_peserta: noPeserta,
       nama: namaSiswa,
       kelas: kelasSiswa,
+      mata_pelajaran: mataPelajaranUjian, // DENGAN MATA PELAJARAN
       jawaban: jawabanSiswa
     };
 
@@ -438,7 +439,6 @@
       const result = await apiPost(payload);
       if (result.status === "success") {
         alert("Jawaban ujian Anda berhasil terkirim dan disimpan!");
-        // BERSAMAN LOCAL STORAGE SESI
         localStorage.removeItem(`jawaban_${kode}_${noPeserta}`);
         localStorage.removeItem(`startTime_${kode}_${noPeserta}`);
         sessionStorage.clear();
