@@ -698,6 +698,8 @@ async function muatDaftarKodeSoal() {
 
 // 2. PROSES SUBMIT JAWABAN SISWA
 async function kirimJawabanKeServer() {
+  // Matikan proteksi keluar karena siswa resmi mengirim jawaban
+  window.onbeforeunload = null;
   if (timerInterval) clearInterval(timerInterval);
 
   document.body.innerHTML = `
@@ -798,7 +800,41 @@ function fixPecahanDariTanggal(val) {
   
   return str;
 }
+// ============================================================
+// PERINGATAN KELUAR / REFRESH / BACK HALAMAN (EXAM GUARD)
+// ============================================================
 
+// Status apakah ujian sedang berlangsung
+function apakahUjianBerlangsung() {
+  const sectionLembar = document.getElementById("sectionLembarUjian");
+  return sectionLembar && !sectionLembar.classList.contains("d-none");
+}
+
+// 1. Cegah Refresh / Tutup Tab / Akses URL Lain saat Ujian
+window.addEventListener("beforeunload", function (e) {
+  if (apakahUjianBerlangsung()) {
+    // Memicu dialog konfirmasi standar browser
+    e.preventDefault();
+    e.returnValue = "Ujian sedang berlangsung! Yakin ingin meninggalkan halaman?";
+    return e.returnValue;
+  }
+});
+
+// 2. Mencegah Tombol "Back" Browser
+function cegahTombolBack() {
+  history.pushState(null, null, location.href);
+  window.onpopstate = function () {
+    if (apakahUjianBerlangsung()) {
+      alert("⚠️ DILARANG KELUAR!\n\nProses ujian sedang berlangsung. Silakan selesaikan ujian terlebih dahulu dan klik tombol 'Selesaikan & Kirim Jawaban'.");
+      history.pushState(null, null, location.href);
+    }
+  };
+}
+
+// Jalankan pencegahan Back saat dokumen dimuat
+document.addEventListener("DOMContentLoaded", function() {
+  cegahTombolBack();
+});
 </script>
 </body>
 </html>
