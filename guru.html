@@ -107,7 +107,7 @@
     </li>
     <!-- TAB KHUSUS SUPER ADMIN -->
     <li class="nav-item" role="presentation" id="tabMenuGuru" style="display: none;">
-      <button class="nav-link fw-bold text-dark bg-warning" id="guru-admin-tab" data-bs-toggle="tab" data-bs-target="#tab-kelola-guru" type="button">👨‍🏫 Kelola Akun Guru</button>
+      <button class="nav-link fw-bold text-dark bg-warning" id="guru-admin-tab" data-bs-toggle="tab" data-bs-target="#tab-kelola-guru" type="button">👥 Kelola Akun Guru</button>
     </li>
   </ul>
 
@@ -125,66 +125,66 @@
               <input type="text" id="cfgKodeUjian" class="form-control bg-light" readonly placeholder="Terisi otomatis dari Kode Soal di atas">
             </div>
 
-            <!-- FITUR BARU: INPUT MATA PELAJARAN -->
-<div class="mb-3">
-  <label for="mapel" class="form-label fw-bold">Mata Pelajaran (Mapel)</label>
-  <select class="form-select" id="mapel" name="mapel" required>
-    <option value="" disabled selected>-- Pilih Mata Pelajaran --</option>
-    
-    <!-- Kelompok Agama & Moral -->
-    <optgroup label="Pendidikan Agama & Budi Pekerti">
-      <option value="Pendidikan Agama Islam">Pendidikan Agama Islam</option>
-      <option value="Pendidikan Agama Kristen">Pendidikan Agama Kristen</option>
-      <option value="Pendidikan Agama Katolik">Pendidikan Agama Katolik</option>
-      <option value="Pendidikan Agama Hindu">Pendidikan Agama Hindu</option>
-      <option value="Pendidikan Agama Buddha">Pendidikan Agama Buddha</option>
-      <option value="Pendidikan Agama Khonghucu">Pendidikan Agama Khonghucu</option>
-    </optgroup>
+            <!-- FITUR INPUT MATA PELAJARAN (ID DISESUAIKAN DENGAN JS) -->
+            <div class="col-md-4">
+              <label for="cfgMapel" class="form-label fw-bold">Mata Pelajaran (Mapel)</label>
+              <select class="form-select" id="cfgMapel" name="mapel" required>
+                <option value="" disabled selected>-- Pilih Mata Pelajaran --</option>
+                
+                <!-- Kelompok Agama & Moral -->
+                <optgroup label="Pendidikan Agama & Budi Pekerti">
+                  <option value="Pendidikan Agama Islam">Pendidikan Agama Islam</option>
+                  <option value="Pendidikan Agama Kristen">Pendidikan Agama Kristen</option>
+                  <option value="Pendidikan Agama Katolik">Pendidikan Agama Katolik</option>
+                  <option value="Pendidikan Agama Hindu">Pendidikan Agama Hindu</option>
+                  <option value="Pendidikan Agama Buddha">Pendidikan Agama Buddha</option>
+                  <option value="Pendidikan Agama Khonghucu">Pendidikan Agama Khonghucu</option>
+                </optgroup>
 
-    <!-- Kelompok Mata Pelajaran Umum -->
-    <optgroup label="Mata Pelajaran Umum">
-      <option value="Pendidikan Pancasila / PKn">Pendidikan Pancasila / PKn</option>
-      <option value="Bahasa Indonesia">Bahasa Indonesia</option>
-      <option value="Matematika">Matematika</option>
-      <option value="Bahasa Inggris">Bahasa Inggris</option>
-      <option value="Informatika">Informatika</option>
-      <option value="Pendidikan Jasmani, Olahraga & Kesehatan">Pendidikan Jasmani, Olahraga & Kesehatan (PJOK)</option>
-      <option value="Seni Budaya">Seni Budaya</option>
-      <option value="Prakarya">Prakarya</option>
-      <option value="Sejarah">Sejarah</option>
-    </optgroup>
+                <!-- Kelompok Mata Pelajaran Umum -->
+                <optgroup label="Mata Pelajaran Umum">
+                  <option value="Pendidikan Pancasila / PKn">Pendidikan Pancasila / PKn</option>
+                  <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                  <option value="Matematika">Matematika</option>
+                  <option value="Bahasa Inggris">Bahasa Inggris</option>
+                  <option value="Informatika">Informatika</option>
+                  <option value="Pendidikan Jasmani, Olahraga & Kesehatan">Pendidikan Jasmani, Olahraga & Kesehatan (PJOK)</option>
+                  <option value="Seni Budaya">Seni Budaya</option>
+                  <option value="Prakarya">Prakarya</option>
+                  <option value="Sejarah">Sejarah</option>
+                </optgroup>
 
-    <!-- Kelompok IPA & IPS (SMP / SMA) -->
-    <optgroup label="Sains & Sosial (IPA / IPS)">
-      <option value="IPAS">IPAS (Ilmu Pengetahuan Alam dan Sosial - SD)</option>
-      <option value="IPA Terpadu">IPA Terpadu (SMP)</option>
-      <option value="IPS Terpadu">IPS Terpadu (SMP)</option>
-      <option value="Fisika">Fisika</option>
-      <option value="Kimia">Kimia</option>
-      <option value="Biologi">Biologi</option>
-      <option value="Sosiologi">Sosiologi</option>
-      <option value="Ekonomi">Ekonomi</option>
-      <option value="Geografi">Geografi</option>
-    </optgroup>
+                <!-- Kelompok IPA & IPS (SMP / SMA) -->
+                <optgroup label="Sains & Sosial (IPA / IPS)">
+                  <option value="IPAS">IPAS (Ilmu Pengetahuan Alam dan Sosial - SD)</option>
+                  <option value="IPA Terpadu">IPA Terpadu (SMP)</option>
+                  <option value="IPS Terpadu">IPS Terpadu (SMP)</option>
+                  <option value="Fisika">Fisika</option>
+                  <option value="Kimia">Kimia</option>
+                  <option value="Biologi">Biologi</option>
+                  <option value="Sosiologi">Sosiologi</option>
+                  <option value="Ekonomi">Ekonomi</option>
+                  <option value="Geografi">Geografi</option>
+                </optgroup>
 
-    <!-- Kelompok Khusus Madrasah (MI / MTs / MA) -->
-    <optgroup label="Pendidikan Agama Islam (Madrasah)">
-      <option value="Al-Qur'an Hadis">Al-Qur'an Hadis</option>
-      <option value="Aqidah Akhlak">Aqidah Akhlak</option>
-      <option value="Fiqih">Fiqih</option>
-      <option value="Sejarah Kebudayaan Islam (SKI)">Sejarah Kebudayaan Islam (SKI)</option>
-      <option value="Bahasa Arab">Bahasa Arab</option>
-    </optgroup>
+                <!-- Kelompok Khusus Madrasah (MI / MTs / MA) -->
+                <optgroup label="Pendidikan Agama Islam (Madrasah)">
+                  <option value="Al-Qur'an Hadis">Al-Qur'an Hadis</option>
+                  <option value="Aqidah Akhlak">Aqidah Akhlak</option>
+                  <option value="Fiqih">Fiqih</option>
+                  <option value="Sejarah Kebudayaan Islam (SKI)">Sejarah Kebudayaan Islam (SKI)</option>
+                  <option value="Bahasa Arab">Bahasa Arab</option>
+                </optgroup>
 
-    <!-- Muatan Lokal & Kejuruan -->
-    <optgroup label="Muatan Lokal & Lainnya">
-      <option value="Bahasa Sunda">Bahasa Sunda</option>
-      <option value="Bahasa Jawa">Bahasa Jawa</option>
-      <option value="Kejuruan / Produktif SMK">Kejuruan / Produktif SMK</option>
-      <option value="Bimbingan Konseling (BK)">Bimbingan Konseling (BK)</option>
-    </optgroup>
-  </select>
-</div>
+                <!-- Muatan Lokal & Kejuruan -->
+                <optgroup label="Muatan Lokal & Lainnya">
+                  <option value="Bahasa Sunda">Bahasa Sunda</option>
+                  <option value="Bahasa Jawa">Bahasa Jawa</option>
+                  <option value="Kejuruan / Produktif SMK">Kejuruan / Produktif SMK</option>
+                  <option value="Bimbingan Konseling (BK)">Bimbingan Konseling (BK)</option>
+                </optgroup>
+              </select>
+            </div>
             
             <div class="col-md-4">
               <label class="form-label fw-bold">Jenis Ujian</label>
@@ -252,7 +252,7 @@
               ➕ Buat Soal Manual
             </button>
             <button type="button" class="btn btn-info text-white btn-sm fw-bold me-1" onClick="tinjauDanCetakSoal()">
-              👁️ Tinjau & Cetak Soal
+              🔍 Tinjau & Cetak Soal
             </button>
             <button type="button" class="btn btn-outline-success btn-sm fw-bold" onClick="downloadTemplateExcel()">
               📥 Download Format Excel (.xlsx)
@@ -261,7 +261,7 @@
         </div>
         
         <div class="drop-zone text-center mb-4" onClick="document.getElementById('fileInputSoal').click()">
-          <div class="display-5 text-primary mb-2">📄</div>
+          <div class="display-5 text-primary mb-2">📁</div>
           <h6 class="fw-bold mb-1">Klik di sini atau Tarik File Soal Anda</h6>
           <p class="text-muted small mb-2">Mendukung format: <strong>.xlsx, .xls, .docx, .txt, .json</strong></p>
           <button type="button" class="btn btn-outline-primary btn-sm fw-bold">Pilih File dari Komputer</button>
@@ -367,7 +367,7 @@
             <small class="text-muted" id="infoTotalSiswaAnalisis">Total Responden: -</small>
           </div>
           <div class="no-print">
-            <button class="btn btn-success btn-sm fw-bold me-1" onClick="exportAnalisisToExcel()">📥 Export Excel</button>
+            <button class="btn btn-success btn-sm fw-bold me-1" onClick="exportAnalisisToExcel()">📊 Export Excel</button>
             <button class="btn btn-secondary btn-sm fw-bold me-1" onClick="cetakAnalisisPDF()">🖨️ Cetak / PDF</button>
             <button class="btn btn-outline-primary btn-sm fw-bold" onClick="muatAnalisisSoal()">🔄 Refresh</button>
           </div>
@@ -444,7 +444,7 @@
             </div>
 
             <div class="col-md-12">
-              <label class="form-label fw-bold">Pertanyaan / Pertanyaan Ujian</label>
+              <label class="form-label fw-bold">Pertanyaan Ujian</label>
               <textarea id="mPertanyaan" class="form-control" rows="3" placeholder="Ketik pertanyaan di sini..." required></textarea>
             </div>
 
@@ -496,7 +496,7 @@
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header bg-dark text-white no-print">
-        <h5 class="modal-title fw-bold">👁️ Pratinjau & Cetak Bank Soal</h5>
+        <h5 class="modal-title fw-bold">🔍 Pratinjau & Cetak Bank Soal</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body p-4" id="areaCetakSoal">
@@ -520,7 +520,7 @@
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header bg-info text-white no-print">
-        <h5 class="modal-title fw-bold text-dark">📋 Lembar Jawaban Siswa</h5>
+        <h5 class="modal-title fw-bold text-dark">📄 Lembar Jawaban Siswa</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -740,7 +740,6 @@
     return kode;
   }
 
-  // FUNGSI MEMBUAT & MENGUNDUH TEMPLATE EXCEL DENGAN FORMAT TEKS (@)
   function downloadTemplateExcel() {
     const kode = document.getElementById("kodeSoalInput").value.trim().toUpperCase() || "ATS-MTK7";
     
@@ -848,13 +847,16 @@
         }
 
         document.getElementById("cfgKodeUjian").value = kode;
-        document.getElementById("cfgMapel").value = cfg.mata_pelajaran || cfg.mapel || "";
+        
+        const mapelValue = cfg.mata_pelajaran || cfg.mapel || "";
+        selectDropdownValue("cfgMapel", mapelValue);
+        
         document.getElementById("cfgDurasi").value = cfg.durasi || 90;
         document.getElementById("cfgPenyusun").value = cfg.penyusun || cfg.nama_ujian || "";
         document.getElementById("cfgPengawas").value = cfg.pengawas || "";
         document.getElementById("cfgDaftarKelas").value = cfg.daftar_kelas || cfg.kelas || "";
 
-        currentMapel = cfg.mata_pelajaran || cfg.mapel || "-";
+        currentMapel = mapelValue || "-";
 
         selectDropdownValue("cfgJenisUjian", cfg.jenis_ujian || "");
         selectDropdownValue("cfgStatus", cfg.status_ujian || cfg.status || "Aktif");
@@ -916,7 +918,6 @@
     }
   }
 
-  // INPUT MANUAL & TINJAU / CETAK SOAL
   function toggleFormTipeSoal() {
     const tipe = document.getElementById("mTipeSoal").value;
     const containerPG = document.getElementById("containerOpsiPG");
@@ -1051,7 +1052,6 @@
     modalTinjauSoalInstance.show();
   }
 
-  // PARSER FILE EXCEL (HANYA MENGGUNAKAN OPSI A-D)
   function prosesUploadFile(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -1227,7 +1227,6 @@
     }
   }
 
-  // REKAP HASIL & ESSAI
   async function muatHasilUjian() {
     const kode = getKodeSoal();
     if (!kode) return;
@@ -1286,20 +1285,20 @@
 
       const sudahDikoreksi = Object.keys(detailNilaiObj).length > 0 || nilaiEssai > 0;
       const btnClass = sudahDikoreksi ? "btn-success text-white" : "btn-warning text-dark";
-      const btnText = sudahDikoreksi ? "✅ Koreksi" : "📝 Koreksi";
+      const btnText = sudahDikoreksi ? "✓ Koreksi" : "✏️ Koreksi";
       const origIndex = rawDataHasil.indexOf(item);
 
       const row = `
         <tr>
           <td>${new Date(item.timestamp).toLocaleString("id-ID")}</td>
-          <td>${item.no_peserta}</td>
+          <td>${item.no_peserta || item.noPeserta || '-'}</td>
           <td class="fw-bold">${item.nama}</td>
           <td>${item.kelas}</td>
           <td class="text-center"><span class="badge bg-primary fs-6">${nilaiPG}</span></td>
           <td class="text-center"><span class="badge bg-info text-dark fs-6">${nilaiEssai}</span></td>
           <td class="text-center"><span class="badge bg-success fs-6">${totalNilai}</span></td>
           <td class="text-center no-print">
-            <button class="btn btn-sm btn-outline-info text-dark fw-bold me-1" title="Lihat Jawaban Siswa" onclick="bukaModalLihatJawaban(${origIndex})">👁️ Jawaban</button>
+            <button class="btn btn-sm btn-outline-info text-dark fw-bold me-1" title="Lihat Jawaban Siswa" onclick="bukaModalLihatJawaban(${origIndex})">📄 Jawaban</button>
             <button class="btn btn-sm ${btnClass} fw-bold me-1" onclick="bukaModalEssai(${origIndex})">${btnText}</button>
             <button class="btn btn-sm btn-outline-danger fw-bold" title="Hapus Data Peserta" onclick="hapusHasilSiswa('${item.no_peserta || item.noPeserta}', this)">🗑️</button>
           </td>
@@ -1309,13 +1308,12 @@
     });
   }
 
-  // MODAL DETAILED JAWABAN SISWA
   function bukaModalLihatJawaban(index) {
     const item = rawDataHasil[index];
     if (!item) return;
 
     document.getElementById("ljNamaSiswa").innerText = item.nama;
-    document.getElementById("ljNoPeserta").innerText = item.no_peserta;
+    document.getElementById("ljNoPeserta").innerText = item.no_peserta || item.noPeserta || '-';
     document.getElementById("ljKelasSiswa").innerText = item.kelas;
     document.getElementById("ljMapel").innerText = document.getElementById("cfgMapel").value || currentMapel || "-";
 
@@ -1586,7 +1584,7 @@
     const payload = {
       action: "simpanNilaiEssai",
       kode_soal: getKodeSoal(),
-      no_peserta: item.no_peserta,
+      no_peserta: item.no_peserta || item.noPeserta,
       nilai_essai: totalNilaiEssai,
       detail_nilai_essai: detailNilaiPerNomor
     };
@@ -1610,7 +1608,6 @@
     }
   }
 
-  // ANALISIS SOAL
   async function muatAnalisisSoal() {
     const kode = getKodeSoal();
     if (!kode) return;
@@ -1721,7 +1718,7 @@
       return {
         "No": idx + 1,
         "Waktu Selesai": new Date(item.timestamp).toLocaleString("id-ID"),
-        "No Peserta": item.no_peserta,
+        "No Peserta": item.no_peserta || item.noPeserta || '-',
         "Nama Siswa": item.nama,
         "Kelas": item.kelas,
         "Mata Pelajaran": mapel,
