@@ -36,22 +36,41 @@
       background: #ffffff;
       border-radius: 8px;
     }
-    @media print {
-      .no-print, #guruTab, .btn, nav, header, .stat-card, .filter-box, .modal-header, .modal-footer {
-        display: none !important;
-      }
-      .tab-pane {
-        display: block !important;
-        opacity: 1 !important;
-      }
-      .card, .modal-content {
-        border: none !important;
-        box-shadow: none !important;
-      }
-      .modal-body {
-        padding: 0 !important;
-      }
-    }
+  @media print {
+  /* Sembunyikan elemen latar luar modal */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Hanya tampilkan area isi modal */
+  #modalLihatJawaban, 
+  #modalLihatJawaban * {
+    visibility: visible;
+  }
+
+  #modalLihatJawaban {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  .modal-dialog {
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .modal-body {
+    overflow: visible !important; /* Agar semua halaman ter-print penuh */
+  }
+
+  /* Sembunyikan tombol header & footer modal saat print */
+  .no-print, .modal-header, .modal-footer {
+    display: none !important;
+  }
+}
   </style>
 
   <!-- Library Parser Excel (.xlsx) & Word (.docx) -->
@@ -540,7 +559,8 @@
         <h5 class="modal-title fw-bold text-dark">📄 Lembar Jawaban Siswa</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
+      
+      <div class="modal-body" id="areaCetakModal">
         <div class="p-3 bg-light rounded border mb-3">
           <div class="row">
             <div class="col-md-6">
@@ -553,11 +573,14 @@
             </div>
           </div>
         </div>
+        
         <div id="containerLembarJawabanLengkap"></div>
       </div>
+
       <div class="modal-footer no-print">
         <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Tutup</button>
-        <button type="button" class="btn btn-primary fw-bold" onClick="window.print()">🖨️ Cetak Lembar Jawaban</button>
+        <!-- Gunakan ID pada tombol agar parameter bisa diset lewat JS saat modal dibuka -->
+        <button type="button" id="btnCetakLJ" class="btn btn-primary fw-bold">🖨️ Cetak Lembar Jawaban</button>
       </div>
     </div>
   </div>
@@ -1122,21 +1145,34 @@ async function tinjauDanCetakSoal(kodeSoal) {
     // 5. Loop data soal
     listSoal.forEach((item, index) => {
       const no = item.no_soal || item["No Soal"] || (index + 1);
+      const tipe = String(item.tipe || item["Tipe"] || "PG").trim().toUpperCase();
       const pertanyaan = item.pertanyaan || item["Pertanyaan"] || "";
       const opA = item.opA || item["Opsi A"] || "";
       const opB = item.opB || item["Opsi B"] || "";
       const opC = item.opC || item["Opsi C"] || "";
       const opD = item.opD || item["Opsi D"] || "";
 
+      // Cek apakah tipe soal merupakan PG/Pilgan
+      const isPG = tipe === "PG" || tipe === "PILGAN";
+
       htmlContent += `
         <div class="soal-item">
           <div class="soal-text">${no}. ${pertanyaan}</div>
+      `;
+
+      // Tampilkan opsi A, B, C, D HANYA JIKA tipe soal adalah PG
+      if (isPG) {
+        htmlContent += `
           <ul class="opsi-list">
             ${opA ? `<li>A. ${opA}</li>` : ''}
             ${opB ? `<li>B. ${opB}</li>` : ''}
             ${opC ? `<li>C. ${opC}</li>` : ''}
             ${opD ? `<li>D. ${opD}</li>` : ''}
           </ul>
+        `;
+      }
+
+      htmlContent += `
         </div>
       `;
     });
@@ -1162,6 +1198,7 @@ async function tinjauDanCetakSoal(kodeSoal) {
     alert("Terjadi kesalahan teknis saat mengambil data naskah soal.");
   }
 }
+
 
   function prosesUploadFile(event) {
     const file = event.target.files[0];
@@ -1951,6 +1988,258 @@ async function bukaModalLihatJawaban(index) {
     console.error("Gagal memuat kode soal:", err);
   }
 }
+
+async function tinjauDanCetakLembarJawaban(kodeSoal) {
+  if (!kodeSoal || typeof kodeSoal !== "string") {
+    kodeSoal = typeof getKodeSoal === "function" ? getKodeSoal() : document.getElementById("kodeSoalInput")?.value.trim().toUpperCase();
+  }
+
+  if (!kodeSoal) {
+    alert("Kode soal tidak boleh kosong!");
+    return;
+  }
+
+  try {
+    const targetUrl = typeof API_URL !== "undefined" ? API_URL : (typeof SCRIPT_URL !== "undefined" ? SCRIPT_URL : "");
+
+    // 1. Ambil data soal
+    const resSoal = await fetch(targetUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "getSoalByKode", kode_soal: kodeSoal })
+    });
+    const resultSoal = await resSoal.json();
+
+    if (resultSoal.status !== "success" || !resultSoal.data || resultSoal.data.length === 0) {
+      alert("Data soal tidak ditemukan.");
+      return;
+    }
+
+    const listSoal = resultSoal.data;
+
+    // 2. Ambil data pengaturan
+    const resPengaturan = await fetch(targetUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "getPengaturan", kode_soal: kodeSoal })
+    });
+    const dataCfg = await resPengaturan.json();
+    const config = (dataCfg.status === "success" && dataCfg.data) 
+      ? (Array.isArray(dataCfg.data) ? dataCfg.data[0] : dataCfg.data) 
+      : {};
+
+    // 3. Buka jendela cetak
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Pop-up diblokir oleh browser! Harap izinkan pop-up.");
+      return;
+    }
+
+    // Filter soal PG dan Essai
+    const soalPG = listSoal.filter(item => {
+      const tipe = String(item.tipe || item["Tipe"] || "PG").trim().toUpperCase();
+      return tipe === "PG" || tipe === "PILGAN";
+    });
+
+    const soalEssai = listSoal.filter(item => {
+      const tipe = String(item.tipe || item["Tipe"] || "").trim().toUpperCase();
+      return tipe === "ESSAI" || tipe === "ESSAY" || tipe === "URAIAN";
+    });
+
+    // 4. Susun HTML dengan CSS Cetak yang Aman (Multi-page Fix)
+    let htmlContent = `
+      <!DOCTYPE html>
+      <html lang="id">
+      <head>
+        <meta charset="UTF-8">
+        <title>Lembar Jawaban - ${kodeSoal}</title>
+        <style>
+          /* Pengaturan Dasar untuk Cetak */
+          html, body {
+            width: 100%;
+            height: auto !important; /* Mencegah terpotong 1 halaman */
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #fff;
+            color: #000;
+          }
+
+          .container {
+            padding: 20px;
+            box-sizing: border-box;
+          }
+
+          /* Header Lembar Jawaban */
+          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px; }
+          .header h2, .header h3 { margin: 2px 0; text-transform: uppercase; font-size: 16px; }
+
+          .meta-table { width: 100%; margin-bottom: 15px; border-collapse: collapse; }
+          .meta-table td { padding: 3px; font-size: 13px; vertical-align: top; }
+
+          .section-title { font-weight: bold; margin: 10px 0 5px 0; font-size: 14px; border-bottom: 1px solid #ccc; padding-bottom: 2px; }
+
+          /* Grid Lembar Jawaban PG */
+          .grid-pg {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 kolom nomor */
+            gap: 8px 20px;
+            margin-bottom: 20px;
+          }
+
+          .ljk-item {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+          }
+          .ljk-no { width: 30px; font-weight: bold; text-align: right; margin-right: 8px; }
+          .ljk-options { display: flex; gap: 8px; }
+          .circle {
+            width: 18px;
+            height: 18px;
+            border: 1px solid #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+          }
+
+          /* Box Jawaban Essai */
+          .essai-item {
+            margin-bottom: 12px;
+            page-break-inside: avoid; /* Menjaga agar kotak essai tidak terpotong di tengah halaman */
+          }
+          .essai-box {
+            border: 1px solid #000;
+            height: 70px;
+            margin-top: 4px;
+            width: 100%;
+          }
+
+          /* Aturan Khusus Cetak (Print Stylesheet) */
+          @media print {
+            body { margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+            
+            /* Penting: hindari pemotongan halaman */
+            html, body, .container {
+              overflow: visible !important;
+              height: auto !important;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="padding: 10px; text-align: right; background: #f0f0f0; margin-bottom: 10px;">
+          <button onclick="window.print()" style="padding: 8px 16px; font-weight: bold; cursor: pointer;">🖨️ Cetak Lembar Jawaban</button>
+        </div>
+
+        <div class="container">
+          <div class="header">
+            <h2>LEMBAR JAWABAN UJIAN</h2>
+            <h3>${config.jenis_ujian || "PENILAIAN UJIAN"}</h3>
+          </div>
+
+          <table class="meta-table">
+            <tr>
+              <td width="15%"><strong>Nama Siswa</strong></td>
+              <td width="35%">: .......................................................</td>
+              <td width="15%"><strong>Mata Pelajaran</strong></td>
+              <td width="35%">: ${config.mata_pelajaran || config.mapel || "-"}</td>
+            </tr>
+            <tr>
+              <td><strong>No. Ujian / NIS</strong></td>
+              <td>: .......................................................</td>
+              <td><strong>Kelas / Tingkat</strong></td>
+              <td>: ${config.kelas || config.daftar_kelas || "-"}</td>
+            </tr>
+            <tr>
+              <td><strong>Kode Soal</strong></td>
+              <td>: ${kodeSoal}</td>
+              <td><strong>Tanggal</strong></td>
+              <td>: .......................................................</td>
+            </tr>
+          </table>
+
+          <!-- BAGIAN I: PILIHAN GANDA -->
+          ${soalPG.length > 0 ? `
+            <div class="section-title">I. LEMBAR JAWABAN PILIHAN GANDA</div>
+            <div class="grid-pg">
+              ${soalPG.map((item, idx) => {
+                const no = item.no_soal || item["No Soal"] || (idx + 1);
+                return `
+                  <div class="ljk-item">
+                    <span class="ljk-no">${no}.</span>
+                    <div class="ljk-options">
+                      <div class="circle">A</div>
+                      <div class="circle">B</div>
+                      <div class="circle">C</div>
+                      <div class="circle">D</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
+
+          <!-- BAGIAN II: ESSAI / URAIAN -->
+          ${soalEssai.length > 0 ? `
+            <div class="section-title" style="margin-top: 15px;">II. LEMBAR JAWABAN URAIAN / ESSAI</div>
+            ${soalEssai.map((item, idx) => {
+              const no = item.no_soal || item["No Soal"] || (idx + 1);
+              return `
+                <div class="essai-item">
+                  <div style="font-size: 12px; font-weight: bold;">Soal No. ${no}</div>
+                  <div class="essai-box"></div>
+                </div>
+              `;
+            }).join('')}
+          ` : ''}
+
+        </div>
+      </body>
+      </html>
+    `;
+
+    // 5. Tulis HTML dan Trigger Cetak
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
+
+  } catch (error) {
+    console.error("Gagal mencetak lembar jawaban:", error);
+    alert("Terjadi kesalahan teknis saat membuat lembar jawaban.");
+  }
+}
+
+function lihatJawabanSiswa(idSiswa, kodeSoal) {
+  // 1. Set nilai parameter ke tombol cetak secara dinamis
+  const btnCetak = document.getElementById("btnCetakLJ");
+  if (btnCetak) {
+    btnCetak.onclick = function() {
+      cetakLembarJawabanSiswa(idSiswa, kodeSoal);
+    };
+  }
+
+  // 2. Isi data header modal (Nama, Mapel, dll)
+  document.getElementById("ljNamaSiswa").innerText = "Nama Siswa dari Data";
+  document.getElementById("ljNoPeserta").innerText = idSiswa;
+  // ... isi data lainnya ...
+
+  // 3. Tampilkan Modal Bootstrap
+  const modalEl = document.getElementById("modalLihatJawaban");
+  const modalObj = bootstrap.Modal.getOrCreateInstance(modalEl);
+  modalObj.show();
+}
+
 </script>
 </body>
 </html>
