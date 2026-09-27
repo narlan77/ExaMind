@@ -128,33 +128,34 @@
             <i class="fa-solid fa-graduation-cap fa-2x text-white"></i>
           </div>
           <h4 class="fw-bold mb-1">Ruang Ujian Online</h4>
-          <p class="mb-0 text-white-50 small">Masukkan data Anda untuk memulai ujian</p>
+          <p class="mb-0 text-white-50 small">Masukkan No. Peserta terlebih dahulu</p>
         </div>
 
         <!-- BODY FORM -->
         <div class="card-body p-4 p-md-4">
           <form id="formMasukUjian" onsubmit="mulaiKonfirmasiUjian(event)">
             
-            <!-- 1. Dropdown Kode Soal -->
-            <div class="mb-3">
-              <label for="inputKodeSoal" class="form-label fw-semibold small text-muted">KODE SOAL / UJIAN</label>
-              <div class="input-group">
-                <span class="input-group-text input-group-text-elegan"><i class="fa-solid fa-key"></i></span>
-                <select id="inputKodeSoal" class="form-select form-select-elegan" onchange="muatPengaturanSiswa()" required>
-                  <option value="">-- Memuat Kode Soal... --</option>
-                </select>
-                <button class="btn btn-outline-secondary" type="button" id="btnRefreshKode" onclick="refreshKodeSoal()" title="Muat ulang daftar kode soal">
-                  🔄
-                </button>
-              </div>
-            </div>
-
-            <!-- 2. Input NIS / NISN -->
+            <!-- 1. Input NIS / NISN (DILETAK BANJIR PALING ATAS) -->
             <div class="mb-3">
               <label for="inputNisSiswa" class="form-label fw-semibold small text-muted">NO. PESERTA / NIS / NISN</label>
               <div class="input-group">
                 <span class="input-group-text input-group-text-elegan"><i class="fa-solid fa-id-card"></i></span>
-                <input type="text" id="inputNisSiswa" class="form-control form-control-elegan" placeholder="Masukkan No. Peserta/NIS/NISN" required />
+                <input type="text" id="inputNisSiswa" class="form-control form-control-elegan" 
+                    placeholder="Masukkan No. Peserta/NIS/NISN" oninput="prosesVerifikasiDanMuatKode(this.value)" required />
+              </div>
+            </div>
+
+            <!-- 2. Dropdown Kode Soal (TERKUNCI SECARA DEFAULT) -->
+            <div class="mb-3">
+              <label for="inputKodeSoal" class="form-label fw-semibold small text-muted">KODE SOAL / UJIAN</label>
+              <div class="input-group">
+                <span class="input-group-text input-group-text-elegan"><i class="fa-solid fa-key"></i></span>
+                <select id="inputKodeSoal" class="form-select form-select-elegan" onchange="muatPengaturanSiswa()" disabled required>
+                  <option value="">-- Masukkan No. Peserta Terlebih Dahulu --</option>
+                </select>
+                <button class="btn btn-outline-secondary" type="button" id="btnRefreshKode" onclick="refreshKodeSoal()" title="Muat ulang daftar kode soal" disabled>
+                  🔄
+                </button>
               </div>
             </div>
 
@@ -270,11 +271,113 @@
   let timerAutoSaveEssai = null;
   let statusUjianAktif = false;
 
-  // PEMERIKSAAN OTOMATIS SAAT HALAMAN DI-REFRESH
+  // PEMERIKSAAN OTOMATIS SAAT HALAMAN DI-REFRESH / LOADED
   document.addEventListener("DOMContentLoaded", function() {
     cekSesiUjianAktif();
-    muatDaftarKodeSoal();
+
+    // Event Listener pada Input No. Peserta / NIS untuk load kode soal
+    const inputNis = document.getElementById("inputNisSiswa");
+    if (inputNis) {
+      inputNis.addEventListener("change", function() {
+        prosesVerifikasiDanMuatKode(this.value);
+      });
+      inputNis.addEventListener("blur", function() {
+        prosesVerifikasiDanMuatKode(this.value);
+      });
+    }
   });
+
+  // ==========================================
+  // FITUR: MUAT KODE SOAL KETIKA NO PESERTA DIISI
+  // ==========================================
+// PEMERIKSAAN OTOMATIS SAAT HALAMAN DI-REFRESH / DIBUKA
+document.addEventListener("DOMContentLoaded", function() {
+  cekSesiUjianAktif();
+});
+
+// VERIFIKASI NO PESERTA & FILTER KODE SOAL TERSEDIA
+async function prosesVerifikasiDanMuatKode(noPeserta) {
+  const valNis = String(noPeserta || "").trim();
+  const selectKode = document.getElementById("inputKodeSoal");
+  const btnRefresh = document.getElementById("btnRefreshKode");
+  const selectKelas = document.getElementById("inputKelasSiswa");
+
+  const targetUrl = (typeof CONFIG !== 'undefined' && CONFIG.API_URL) ? CONFIG.API_URL : (typeof API_URL !== 'undefined' ? API_URL : "");
+
+  if (!valNis) {
+    if (selectKode) {
+      selectKode.disabled = true;
+      selectKode.innerHTML = '<option value="">-- Masukkan No. Peserta Terlebih Dahulu --</option>';
+    }
+    if (btnRefresh) btnRefresh.disabled = true;
+    if (selectKelas) selectKelas.innerHTML = '<option value="">-- Pilih Kode Soal Terlebih Dahulu --</option>';
+    return;
+  }
+
+  if (selectKode) {
+    selectKode.disabled = true;
+    selectKode.innerHTML = '<option value="">⏳ Memeriksa Ujian Tersedia...</option>';
+  }
+  if (btnRefresh) btnRefresh.disabled = true;
+
+  try {
+    const [resKodeRaw, resCekRaw] = await Promise.all([
+      fetch(targetUrl, {
+        method: "POST",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "getdaftarkodesoal" })
+      }),
+      fetch(targetUrl, {
+        method: "POST",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "cekSoalSiswa", no_peserta: valNis })
+      })
+    ]);
+
+    const resKodeData = await resKodeRaw.json();
+    const resCekData = await resCekRaw.json();
+
+    if (resKodeData.status !== "success" || !Array.isArray(resKodeData.data)) {
+      if (selectKode) selectKode.innerHTML = '<option value="">-- Tidak Ada Ujian Aktif --</option>';
+      return;
+    }
+
+    const semuaKode = resKodeData.data;
+    const soalSelesai = (resCekData && resCekData.soal_selesai) ? resCekData.soal_selesai : [];
+
+    if (selectKode) {
+      selectKode.innerHTML = '<option value="">-- Pilih Kode Soal --</option>';
+
+      semuaKode.forEach(kode => {
+        const kodeClean = String(kode).trim().toUpperCase();
+        const isSelesai = soalSelesai.map(s => String(s).trim().toUpperCase()).includes(kodeClean);
+
+        if (isSelesai) {
+          selectKode.innerHTML += `<option value="${kode}" disabled style="color: #dc3545; background-color: #f8d7da;">${kode} ✔️ (Sudah Dikerjakan)</option>`;
+        } else {
+          selectKode.innerHTML += `<option value="${kode}">${kode}</option>`;
+        }
+      });
+
+      selectKode.disabled = false;
+    }
+    if (btnRefresh) btnRefresh.disabled = false;
+
+  } catch (err) {
+    console.error("Gagal verifikasi no peserta & kode soal:", err);
+    if (selectKode) {
+      selectKode.innerHTML = '<option value="">-- Gagal Memuat (Cek Deployment / API_URL) --</option>';
+    }
+  }
+}
+
+function refreshKodeSoal() {
+  const inputNis = document.getElementById("inputNisSiswa");
+  const valNis = inputNis ? inputNis.value : "";
+  prosesVerifikasiDanMuatKode(valNis);
+}
 
   // ==========================================
   // FITUR: PENCEGAHAN DAN PERINGATAN TOMBOL BACK
@@ -386,7 +489,12 @@
     const noPeserta = elNis ? elNis.value.trim() : "";
 
     if (!kode || !nama || !kelas || !noPeserta) {
-      alert("Harap lengkapi semua data (Kode Soal, NIS/No Peserta, Nama, dan Kelas)!");
+      alert("Harap lengkapi semua data (No Peserta, Kode Soal, Nama, dan Kelas)!");
+      return;
+    }
+
+    if (elKode && elKode.selectedOptions.length && elKode.selectedOptions[0].disabled) {
+      alert("Anda sudah pernah mengerjakan ujian dengan Kode Soal ini!");
       return;
     }
 
@@ -680,7 +788,7 @@
 
   async function kirimJawabanKeServer() {
     if (timerInterval) clearInterval(timerInterval);
-    matikanProteksiNavigasi(); // Matikan penguncian navigasi saat ujian selesai dikirim
+    matikanProteksiNavigasi();
 
     document.body.innerHTML = `
       <div class="d-flex flex-column align-items-center justify-content-center vh-100 bg-white">
@@ -786,63 +894,10 @@
     }
   }
 
-  async function muatDaftarKodeSoal() {
-    const selectKode = document.getElementById("inputKodeSoal");
-    if (!selectKode) return;
-
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        mode: "cors",
-        redirect: "follow",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "getdaftarkodesoal" })
-      });
-
-      if (!res.ok) {
-        throw new Error("HTTP Status: " + res.status);
-      }
-
-      const response = await res.json();
-
-      if (response.status === "success" && Array.isArray(response.data)) {
-        selectKode.innerHTML = '<option value="">-- Pilih Kode Soal --</option>';
-        response.data.forEach(kode => {
-          selectKode.innerHTML += `<option value="${kode}">${kode}</option>`;
-        });
-      } else {
-        selectKode.innerHTML = '<option value="">-- Tidak Ada Ujian Aktif --</option>';
-      }
-    } catch (err) {
-      console.error("Gagal memuat kode soal:", err);
-      selectKode.innerHTML = '<option value="">-- Gagal Memuat Kode Soal --</option>';
-    }
-  }
-
   async function refreshKodeSoal() {
-    const btn = document.getElementById("btnRefreshKode");
-    const selectKode = document.getElementById("inputKodeSoal");
-    const selectKelas = document.getElementById("inputKelasSiswa");
-
-    if (btn) {
-      btn.disabled = true;
-      btn.innerText = "⏳";
-    }
-
-    selectKode.innerHTML = '<option value="">-- Memuat Ulang... --</option>';
-    if (selectKelas) {
-      selectKelas.innerHTML = '<option value="">-- Pilih Kode Soal Terlebih Dahulu --</option>';
-    }
-
-    try {
-      await muatDaftarKodeSoal();
-    } catch (e) {
-      console.error("Gagal refresh kode soal:", e);
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.innerText = "🔄";
-      }
+    const valNis = document.getElementById("inputNisSiswa")?.value.trim();
+    if (valNis) {
+      await prosesVerifikasiDanMuatKode(valNis);
     }
   }
 
