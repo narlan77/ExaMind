@@ -77,19 +77,36 @@
   </div>
 
   <!-- INPUT KODE SOAL UTAMA -->
-  <div class="card card-custom mb-4 p-3 bg-white no-print">
-    <div class="row align-items-center">
-      <div class="col-md-3">
-        <label class="fw-bold">Pilih / Masukkan Kode Soal:</label>
-      </div>
-      <div class="col-md-6">
-        <input type="text" id="kodeSoalInput" class="form-control" placeholder="Contoh: MAT-X-2026">
-      </div>
-      <div class="col-md-3">
-        <button class="btn btn-primary w-100 fw-bold" id="btnMuatPengaturan" onClick="muatDataSoal()">Muat Data Kode Soal</button>
+<div class="card card-custom mb-4 p-3 bg-white no-print">
+  <div class="row align-items-center">
+    <div class="col-md-3">
+      <label class="fw-bold" for="kodeSoalInput">Pilih / Masukkan Kode Soal:</label>
+    </div>
+    <div class="col-md-6">
+      <div class="input-group">
+        <input 
+          type="text" 
+          id="kodeSoalInput" 
+          class="form-control" 
+          list="listKodeSoal" 
+          placeholder="Ketik atau pilih dari daftar..."
+          autocomplete="off"
+        >
+        <datalist id="listKodeSoal">
+          <!-- Opsi akan terisi otomatis dari Google Sheet -->
+        </datalist>
+        <button class="btn btn-outline-secondary" type="button" onClick="muatDaftarKodeSoal()" title="Segarkan Daftar Kode Soal">
+          🔄
+        </button>
       </div>
     </div>
+    <div class="col-md-3">
+      <button class="btn btn-primary w-100 fw-bold" id="btnMuatPengaturan" onClick="muatDataSoal()">
+        Muat Data Kode Soal
+      </button>
+    </div>
   </div>
+</div>
 
   <!-- TAB NAVIGASI UTAMA -->
   <ul class="nav nav-tabs mb-3 no-print" id="guruTab" role="tablist">
@@ -324,15 +341,15 @@
 
         <div class="row g-2 mb-3 no-print filter-box">
           <div class="col-md-6">
-            <input type="text" id="searchSiswaInput" class="form-control form-control-sm" placeholder="🔍 Cari Nama atau No Peserta..." onkeyup="filterHasilUjian()">
+            <input type="text" id="searchSiswaInput" class="form-control form-control-sm" placeholder="🔍 Cari Nama atau No Peserta..." onKeyUp="filterHasilUjian()">
           </div>
           <div class="col-md-4">
-            <select id="filterKelasSelect" class="form-select form-select-sm" onchange="filterHasilUjian()">
+            <select id="filterKelasSelect" class="form-select form-select-sm" onChange="filterHasilUjian()">
               <option value="">-- Semua Kelas --</option>
             </select>
           </div>
           <div class="col-md-2">
-            <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetFilterHasil()">Reset Filter</button>
+            <button class="btn btn-sm btn-outline-secondary w-100" onClick="resetFilterHasil()">Reset Filter</button>
           </div>
         </div>
 
@@ -433,7 +450,7 @@
             </div>
             <div class="col-md-4">
               <label class="form-label fw-bold">Tipe Soal</label>
-              <select id="mTipeSoal" class="form-select" onchange="toggleFormTipeSoal()">
+              <select id="mTipeSoal" class="form-select" onChange="toggleFormTipeSoal()">
                 <option value="PG">Pilihan Ganda (PG)</option>
                 <option value="ESSAI">Essai / Uraian</option>
               </select>
@@ -1768,6 +1785,42 @@
       muatHasilUjian();
     }
   }
+  
+  async function muatDaftarKodeSoal() {
+  const datalist = document.getElementById("listKodeSoal");
+  if (!datalist) return;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      mode: "cors",
+      redirect: "follow",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "getdaftarkodesoal" }) // Menyesuaikan action huruf kecil dari halaman ujian
+    });
+
+    if (!res.ok) {
+      throw new Error("HTTP Status: " + res.status);
+    }
+
+    const response = await res.json();
+
+    if (response.status === "success" && Array.isArray(response.data)) {
+      // Bersihkan list sebelum mengisi data baru
+      datalist.innerHTML = ""; 
+
+      response.data.forEach(kode => {
+        const option = document.createElement("option");
+        option.value = kode;
+        datalist.appendChild(option);
+      });
+    } else {
+      console.warn("Gagal memuat daftar kode soal:", response.message);
+    }
+  } catch (err) {
+    console.error("Gagal memuat kode soal:", err);
+  }
+}
 </script>
 </body>
 </html>
