@@ -36,41 +36,22 @@
       background: #ffffff;
       border-radius: 8px;
     }
-  @media print {
-  /* Sembunyikan elemen latar luar modal */
-  body * {
-    visibility: hidden;
-  }
-  
-  /* Hanya tampilkan area isi modal */
-  #modalLihatJawaban, 
-  #modalLihatJawaban * {
-    visibility: visible;
-  }
-
-  #modalLihatJawaban {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  .modal-dialog {
-    max-width: 100% !important;
-    margin: 0 !important;
-  }
-
-  .modal-body {
-    overflow: visible !important; /* Agar semua halaman ter-print penuh */
-  }
-
-  /* Sembunyikan tombol header & footer modal saat print */
-  .no-print, .modal-header, .modal-footer {
-    display: none !important;
-  }
-}
+    @media print {
+      .no-print, #guruTab, .btn, nav, header, .stat-card, .filter-box, .modal-header, .modal-footer {
+        display: none !important;
+      }
+      .tab-pane {
+        display: block !important;
+        opacity: 1 !important;
+      }
+      .card, .modal-content {
+        border: none !important;
+        box-shadow: none !important;
+      }
+      .modal-body {
+        padding: 0 !important;
+      }
+    }
   </style>
 
   <!-- Library Parser Excel (.xlsx) & Word (.docx) -->
@@ -1462,6 +1443,20 @@ async function bukaModalLihatJawaban(index) {
 
   const kode = typeof getKodeSoal === 'function' ? getKodeSoal() : "";
 
+  // =========================================================
+  // PERBAIKAN: Hubungkan tombol cetak dengan fungsi cetak
+  // =========================================================
+  const btnCetak = document.getElementById("btnCetakLJ");
+  if (btnCetak) {
+    btnCetak.onclick = function() {
+      // Opsi 1: Cetak khusus area modal lembar jawaban
+      cetakAreaModalJawaban();
+      
+      // Opsi 2 (Alternatif): Jika ingin memanggil cetak lembar jawaban kosong/naskah
+      // tinjauDanCetakLembarJawaban(kode);
+    };
+  }
+
   // 1. Ambil data analisis dari server secara otomatis jika rawDataAnalisis belum ada
   if ((!window.rawDataAnalisis || window.rawDataAnalisis.length === 0) && kode) {
     try {
@@ -1524,7 +1519,6 @@ async function bukaModalLihatJawaban(index) {
     let detailHtml = "";
 
     if (isPG) {
-      // Prioritaskan kunci dari soal, lalu dari mapKunciAnalisis
       const kunciRaw = soal.kunci || soal.kunci_jawaban || mapKunciAnalisis[noSoal] || mapKunciAnalisis[noSoalKey] || "";
       const kunci = String(kunciRaw).trim().toUpperCase();
       const meUpper = String(meJawabRaw).trim().toUpperCase();
@@ -1567,6 +1561,43 @@ async function bukaModalLihatJawaban(index) {
   });
 
   modalLihatJawabanInstance.show();
+}
+
+function cetakAreaModalJawaban() {
+  const isiModal = document.getElementById("areaCetakModal").innerHTML;
+  const printWindow = window.open("", "_blank");
+  
+  if (!printWindow) {
+    alert("Pop-up diblokir browser! Izinkan pop-up untuk mencetak.");
+    return;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+      <meta charset="UTF-8">
+      <title>Cetak Lembar Jawaban Siswa</title>
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+      <style>
+        body { padding: 20px; font-family: Arial, sans-serif; background: #fff; }
+        @media print {
+          .no-print { display: none !important; }
+        }
+      </style>
+    </head>
+    <body>
+      <h3 class="text-center mb-4 fw-bold">HASIL & LEMBAR JAWABAN SISWA</h3>
+      ${isiModal}
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.onload = () => {
+    printWindow.focus();
+    printWindow.print();
+  };
 }
 
   function populasiFilterKelas() {
