@@ -106,10 +106,6 @@
       text-align: center;
       border-radius: 8px;
     }
-    .status-autosave {
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
   </style>
   <script src="config.js"></script>
 </head>
@@ -135,7 +131,7 @@
         <div class="card-body p-4 p-md-4">
           <form id="formMasukUjian" onsubmit="mulaiKonfirmasiUjian(event)">
             
-            <!-- 1. Input NIS / NISN (DILETAK BANJIR PALING ATAS) -->
+            <!-- 1. Input NIS / NISN -->
             <div class="mb-3">
               <label for="inputNisSiswa" class="form-label fw-semibold small text-muted">NO. PESERTA / NIS / NISN</label>
               <div class="input-group">
@@ -145,7 +141,7 @@
               </div>
             </div>
 
-            <!-- 2. Dropdown Kode Soal (TERKUNCI SECARA DEFAULT) -->
+            <!-- 2. Dropdown Kode Soal -->
             <div class="mb-3">
               <label for="inputKodeSoal" class="form-label fw-semibold small text-muted">KODE SOAL / UJIAN</label>
               <div class="input-group">
@@ -202,7 +198,6 @@
       <div>
         <h5 class="fw-bold mb-0" id="labelMataPelajaran">Ujian Online</h5>
         <small class="text-muted"><span id="infoSiswa">Siswa</span> | Kode: <strong id="infoKode"></strong></small>
-        <span id="statusAutoSave" class="status-autosave text-success ms-3"></span>
       </div>
       <div class="text-end">
         <small class="text-muted d-block">Sisa Waktu:</small>
@@ -224,7 +219,7 @@
               <!-- Pertanyaan akan dimuat dinamis -->
             </div>
 
-            <!-- OPTION / KOTAK JAWABAN (DIBUAT TERPISAH) -->
+            <!-- OPTION / KOTAK JAWABAN -->
             <div id="opsiJawabanContainer">
               <!-- Opsi A-E atau Textarea Essai dimuat dinamis -->
             </div>
@@ -268,7 +263,6 @@
   let timerInterval = null;
   let sisaDetik = 0;
   let dataPeserta = {};
-  let timerAutoSaveEssai = null;
   let statusUjianAktif = false;
 
   // PEMERIKSAAN OTOMATIS SAAT HALAMAN DI-REFRESH / LOADED
@@ -287,97 +281,89 @@
     }
   });
 
-  // ==========================================
-  // FITUR: MUAT KODE SOAL KETIKA NO PESERTA DIISI
-  // ==========================================
-// PEMERIKSAAN OTOMATIS SAAT HALAMAN DI-REFRESH / DIBUKA
-document.addEventListener("DOMContentLoaded", function() {
-  cekSesiUjianAktif();
-});
+  // VERIFIKASI NO PESERTA & FILTER KODE SOAL TERSEDIA
+  async function prosesVerifikasiDanMuatKode(noPeserta) {
+    const valNis = String(noPeserta || "").trim();
+    const selectKode = document.getElementById("inputKodeSoal");
+    const btnRefresh = document.getElementById("btnRefreshKode");
+    const selectKelas = document.getElementById("inputKelasSiswa");
 
-// VERIFIKASI NO PESERTA & FILTER KODE SOAL TERSEDIA
-async function prosesVerifikasiDanMuatKode(noPeserta) {
-  const valNis = String(noPeserta || "").trim();
-  const selectKode = document.getElementById("inputKodeSoal");
-  const btnRefresh = document.getElementById("btnRefreshKode");
-  const selectKelas = document.getElementById("inputKelasSiswa");
+    const targetUrl = (typeof CONFIG !== 'undefined' && CONFIG.API_URL) ? CONFIG.API_URL : (typeof API_URL !== 'undefined' ? API_URL : "");
 
-  const targetUrl = (typeof CONFIG !== 'undefined' && CONFIG.API_URL) ? CONFIG.API_URL : (typeof API_URL !== 'undefined' ? API_URL : "");
-
-  if (!valNis) {
-    if (selectKode) {
-      selectKode.disabled = true;
-      selectKode.innerHTML = '<option value="">-- Masukkan No. Peserta Terlebih Dahulu --</option>';
-    }
-    if (btnRefresh) btnRefresh.disabled = true;
-    if (selectKelas) selectKelas.innerHTML = '<option value="">-- Pilih Kode Soal Terlebih Dahulu --</option>';
-    return;
-  }
-
-  if (selectKode) {
-    selectKode.disabled = true;
-    selectKode.innerHTML = '<option value="">⏳ Memeriksa Ujian Tersedia...</option>';
-  }
-  if (btnRefresh) btnRefresh.disabled = true;
-
-  try {
-    const [resKodeRaw, resCekRaw] = await Promise.all([
-      fetch(targetUrl, {
-        method: "POST",
-        redirect: "follow",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "getdaftarkodesoal" })
-      }),
-      fetch(targetUrl, {
-        method: "POST",
-        redirect: "follow",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "cekSoalSiswa", no_peserta: valNis })
-      })
-    ]);
-
-    const resKodeData = await resKodeRaw.json();
-    const resCekData = await resCekRaw.json();
-
-    if (resKodeData.status !== "success" || !Array.isArray(resKodeData.data)) {
-      if (selectKode) selectKode.innerHTML = '<option value="">-- Tidak Ada Ujian Aktif --</option>';
+    if (!valNis) {
+      if (selectKode) {
+        selectKode.disabled = true;
+        selectKode.innerHTML = '<option value="">-- Masukkan No. Peserta Terlebih Dahulu --</option>';
+      }
+      if (btnRefresh) btnRefresh.disabled = true;
+      if (selectKelas) selectKelas.innerHTML = '<option value="">-- Pilih Kode Soal Terlebih Dahulu --</option>';
       return;
     }
 
-    const semuaKode = resKodeData.data;
-    const soalSelesai = (resCekData && resCekData.soal_selesai) ? resCekData.soal_selesai : [];
-
     if (selectKode) {
-      selectKode.innerHTML = '<option value="">-- Pilih Kode Soal --</option>';
-
-      semuaKode.forEach(kode => {
-        const kodeClean = String(kode).trim().toUpperCase();
-        const isSelesai = soalSelesai.map(s => String(s).trim().toUpperCase()).includes(kodeClean);
-
-        if (isSelesai) {
-          selectKode.innerHTML += `<option value="${kode}" disabled style="color: #dc3545; background-color: #f8d7da;">${kode} ✔️ (Sudah Dikerjakan)</option>`;
-        } else {
-          selectKode.innerHTML += `<option value="${kode}">${kode}</option>`;
-        }
-      });
-
-      selectKode.disabled = false;
+      selectKode.disabled = true;
+      selectKode.innerHTML = '<option value="">⏳ Memeriksa Ujian Tersedia...</option>';
     }
-    if (btnRefresh) btnRefresh.disabled = false;
+    if (btnRefresh) btnRefresh.disabled = true;
 
-  } catch (err) {
-    console.error("Gagal verifikasi no peserta & kode soal:", err);
-    if (selectKode) {
-      selectKode.innerHTML = '<option value="">-- Gagal Memuat (Cek Deployment / API_URL) --</option>';
+    try {
+      const [resKodeRaw, resCekRaw] = await Promise.all([
+        fetch(targetUrl, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "getdaftarkodesoal" })
+        }),
+        fetch(targetUrl, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "cekSoalSiswa", no_peserta: valNis })
+        })
+      ]);
+
+      const resKodeData = await resKodeRaw.json();
+      const resCekData = await resCekRaw.json();
+
+      if (resKodeData.status !== "success" || !Array.isArray(resKodeData.data)) {
+        if (selectKode) selectKode.innerHTML = '<option value="">-- Tidak Ada Ujian Aktif --</option>';
+        return;
+      }
+
+      const semuaKode = resKodeData.data;
+      const soalSelesai = (resCekData && resCekData.soal_selesai) ? resCekData.soal_selesai : [];
+
+      if (selectKode) {
+        selectKode.innerHTML = '<option value="">-- Pilih Kode Soal --</option>';
+
+        semuaKode.forEach(kode => {
+          const kodeClean = String(kode).trim().toUpperCase();
+          const isSelesai = soalSelesai.map(s => String(s).trim().toUpperCase()).includes(kodeClean);
+
+          if (isSelesai) {
+            selectKode.innerHTML += `<option value="${kode}" disabled style="color: #dc3545; background-color: #f8d7da;">${kode} ✔️ (Sudah Dikerjakan)</option>`;
+          } else {
+            selectKode.innerHTML += `<option value="${kode}">${kode}</option>`;
+          }
+        });
+
+        selectKode.disabled = false;
+      }
+      if (btnRefresh) btnRefresh.disabled = false;
+
+    } catch (err) {
+      console.error("Gagal verifikasi no peserta & kode soal:", err);
+      if (selectKode) {
+        selectKode.innerHTML = '<option value="">-- Gagal Memuat (Cek Deployment / API_URL) --</option>';
+      }
     }
   }
-}
 
-function refreshKodeSoal() {
-  const inputNis = document.getElementById("inputNisSiswa");
-  const valNis = inputNis ? inputNis.value : "";
-  prosesVerifikasiDanMuatKode(valNis);
-}
+  function refreshKodeSoal() {
+    const inputNis = document.getElementById("inputNisSiswa");
+    const valNis = inputNis ? inputNis.value : "";
+    prosesVerifikasiDanMuatKode(valNis);
+  }
 
   // ==========================================
   // FITUR: PENCEGAHAN DAN PERINGATAN TOMBOL BACK
@@ -488,6 +474,8 @@ function refreshKodeSoal() {
     const kelas = elKelas ? elKelas.value.trim() : "";
     const noPeserta = elNis ? elNis.value.trim() : "";
 
+    const targetUrl = (typeof CONFIG !== 'undefined' && CONFIG.API_URL) ? CONFIG.API_URL : (typeof API_URL !== 'undefined' ? API_URL : "");
+
     if (!kode || !nama || !kelas || !noPeserta) {
       alert("Harap lengkapi semua data (No Peserta, Kode Soal, Nama, dan Kelas)!");
       return;
@@ -505,7 +493,7 @@ function refreshKodeSoal() {
     dataPeserta = { kode, noPeserta, nama, kelas };
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(targetUrl, {
         method: "POST",
         mode: "cors",            
         redirect: "follow",      
@@ -639,7 +627,7 @@ function refreshKodeSoal() {
     updateGridNomorUI();
   }
 
-  // 3. SIMPAN JAWABAN SEMENTARA & AUTO-SAVE KE SERVER
+  // 3. SIMPAN JAWABAN SEMENTARA DIBERSIHKAN DARI AUTOSAVE KE SERVER
   function pilihJawaban(keyUnik, isiJawaban) {
     if (typeof isiJawaban === 'string' && isiJawaban.trim() === "") {
       delete jawabanSiswa[keyUnik];
@@ -648,59 +636,10 @@ function refreshKodeSoal() {
     }
     simpanSesiLokal();
     updateGridNomorUI();
-    
-    autoSaveJawabanKeServer(keyUnik, isiJawaban);
   }
 
   function handleInputEssai(keyUnik, isiJawaban) {
     pilihJawaban(keyUnik, isiJawaban);
-
-    if (timerAutoSaveEssai) clearTimeout(timerAutoSaveEssai);
-    timerAutoSaveEssai = setTimeout(() => {
-      autoSaveJawabanKeServer(keyUnik, isiJawaban);
-    }, 1000);
-  }
-
-  function tampilkanStatusAutoSave(teks) {
-    const el = document.getElementById("statusAutoSave");
-    if (el) el.innerText = teks;
-  }
-
-  async function autoSaveJawabanKeServer(noSoal, jawaban) {
-    if (!dataPeserta.noPeserta || !dataPeserta.kode) return;
-
-    tampilkanStatusAutoSave("Menyimpan...");
-
-    const payload = {
-      action: "autoSaveJawaban",
-      id_peserta: dataPeserta.noPeserta,
-      kode_ujian: dataPeserta.kode,
-      no_soal: noSoal,
-      jawaban: jawaban
-    };
-
-    try {
-      fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8"
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(result => {
-        if (result.status === "success") {
-          tampilkanStatusAutoSave("Tersimpan ✓");
-        } else {
-          tampilkanStatusAutoSave("Gagal menyimpan");
-        }
-      })
-      .catch(() => {
-        tampilkanStatusAutoSave("Offline (Lokal ✓)");
-      });
-    } catch (err) {
-      tampilkanStatusAutoSave("Offline (Lokal ✓)");
-    }
   }
 
   // 4. RENDER TOMBOL GRID NOMOR SOAL
@@ -790,6 +729,8 @@ function refreshKodeSoal() {
     if (timerInterval) clearInterval(timerInterval);
     matikanProteksiNavigasi();
 
+    const targetUrl = (typeof CONFIG !== 'undefined' && CONFIG.API_URL) ? CONFIG.API_URL : (typeof API_URL !== 'undefined' ? API_URL : "");
+
     document.body.innerHTML = `
       <div class="d-flex flex-column align-items-center justify-content-center vh-100 bg-white">
         <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
@@ -808,7 +749,7 @@ function refreshKodeSoal() {
     };
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(targetUrl, {
         method: "POST",
         mode: "cors",
         redirect: "follow",
@@ -844,6 +785,7 @@ function refreshKodeSoal() {
   async function muatPengaturanSiswa() {
     const kodeSoal = document.getElementById("inputKodeSoal").value.trim();
     const selectKelas = document.getElementById("inputKelasSiswa");
+    const targetUrl = (typeof CONFIG !== 'undefined' && CONFIG.API_URL) ? CONFIG.API_URL : (typeof API_URL !== 'undefined' ? API_URL : "");
 
     if (!kodeSoal) {
       selectKelas.innerHTML = '<option value="">-- Pilih Kode Soal Terlebih Dahulu --</option>';
@@ -853,7 +795,7 @@ function refreshKodeSoal() {
     selectKelas.innerHTML = '<option value="">-- Memuat Kelas... --</option>';
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(targetUrl, {
         method: "POST",
         mode: "cors",
         redirect: "follow",
@@ -891,13 +833,6 @@ function refreshKodeSoal() {
     } catch (error) {
       console.error("Gagal memuat kelas:", error);
       selectKelas.innerHTML = `<option value="">-- Gagal memuat kelas (${error.message}) --</option>`;
-    }
-  }
-
-  async function refreshKodeSoal() {
-    const valNis = document.getElementById("inputNisSiswa")?.value.trim();
-    if (valNis) {
-      await prosesVerifikasiDanMuatKode(valNis);
     }
   }
 
