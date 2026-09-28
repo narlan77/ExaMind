@@ -141,7 +141,7 @@
               <div class="input-group">
                 <span class="input-group-text input-group-text-elegan"><i class="fa-solid fa-id-card"></i></span>
                 <input type="text" id="inputNisSiswa" class="form-control form-control-elegan" 
-                    placeholder="Masukkan No. Peserta/NIS/NISN" oninput="prosesVerifikasiDanMuatKode(this.value)" required />
+                    placeholder="Masukkan No. Peserta/NIS/NISN" required />
               </div>
             </div>
 
@@ -271,29 +271,27 @@
   let timerAutoSaveEssai = null;
   let statusUjianAktif = false;
 
-  // PEMERIKSAAN OTOMATIS SAAT HALAMAN DI-REFRESH / LOADED
-  document.addEventListener("DOMContentLoaded", function() {
+// PEMERIKSAAN OTOMATIS SAAT HALAMAN DI-REFRESH / LOADED
+document.addEventListener("DOMContentLoaded", function() {
     cekSesiUjianAktif();
 
-    // Event Listener pada Input No. Peserta / NIS untuk load kode soal
+    // Event Listener pada Input No. Peserta / NIS
     const inputNis = document.getElementById("inputNisSiswa");
     if (inputNis) {
-      inputNis.addEventListener("change", function() {
-        prosesVerifikasiDanMuatKode(this.value);
-      });
+      // Pemicu 1: Jalankan saat penulisan selesai dan kursor berpindah keluar (blur)
       inputNis.addEventListener("blur", function() {
         prosesVerifikasiDanMuatKode(this.value);
       });
+
+      // Pemicu 2: Jalankan saat menekan tombol Enter
+      inputNis.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          e.preventDefault(); // Mencegah form langsung terkirim
+          this.blur(); // Memindahkan fokus agar memicu proses verifikasi
+        }
+      });
     }
   });
-
-  // ==========================================
-  // FITUR: MUAT KODE SOAL KETIKA NO PESERTA DIISI
-  // ==========================================
-// PEMERIKSAAN OTOMATIS SAAT HALAMAN DI-REFRESH / DIBUKA
-document.addEventListener("DOMContentLoaded", function() {
-  cekSesiUjianAktif();
-});
 
 // VERIFIKASI NO PESERTA & FILTER KODE SOAL TERSEDIA
 async function prosesVerifikasiDanMuatKode(noPeserta) {
@@ -660,7 +658,7 @@ function refreshKodeSoal() {
       autoSaveJawabanKeServer(keyUnik, isiJawaban);
     }, 1000);
   }
-/*
+
   function tampilkanStatusAutoSave(teks) {
     const el = document.getElementById("statusAutoSave");
     if (el) el.innerText = teks;
@@ -702,7 +700,7 @@ function refreshKodeSoal() {
       tampilkanStatusAutoSave("Offline (Lokal ✓)");
     }
   }
-*/
+
   // 4. RENDER TOMBOL GRID NOMOR SOAL
   function renderGridNomor() {
     const grid = document.getElementById("gridNomorSoal");
@@ -786,7 +784,7 @@ function refreshKodeSoal() {
     kirimJawabanKeServer();
   }
 
-  async function kirimJawabanKeServer() {
+ async function kirimJawabanKeServer() {
     if (timerInterval) clearInterval(timerInterval);
     matikanProteksiNavigasi();
 
@@ -822,13 +820,25 @@ function refreshKodeSoal() {
       hapusSesiLokal();
 
       if (result.status === "success") {
+        // Cek apakah opsi tampil_skor diset ke "Ya"
+        const isTampilSkor = String(result.tampil_skor || "").trim().toLowerCase() === "ya";
+        const skorHtml = isTampilSkor ? `
+          <div class="my-3 p-3 bg-light rounded border">
+            <small class="text-muted d-block fw-semibold mb-1">SKOR PEROLEHAN PG</small>
+            <h1 class="display-4 fw-bold text-primary mb-0">${result.skor_pg !== undefined ? result.skor_pg : 0}</h1>
+          </div>
+        ` : '';
+
         document.body.innerHTML = `
           <div class="d-flex flex-column align-items-center justify-content-center vh-100 bg-light">
-            <div class="card p-5 text-center card-custom bg-white" style="max-width: 500px;">
-              <div class="display-1 text-success mb-3">✅</div>
-              <h3 class="fw-bold mb-2">Ujian Selesai!</h3>
+            <div class="card p-5 text-center card-custom bg-white" style="max-width: 500px; width: 90%;">
+              <div class="display-1 text-success mb-2">✅</div>
+              <h3 class="fw-bold mb-1">Ujian Selesai!</h3>
               <p class="text-muted">Jawaban Anda telah berhasil tersimpan di sistem.</p>
-              <a href="index.html" class="btn btn-primary mt-3 fw-bold">Kembali ke Halaman Utama</a>
+              
+              ${skorHtml}
+
+              <a href="index.html" class="btn btn-primary mt-3 fw-bold w-100">Kembali ke Halaman Utama</a>
             </div>
           </div>
         `;
