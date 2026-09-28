@@ -268,6 +268,8 @@
             <button type="button" class="btn btn-outline-primary btn-sm fw-bold me-1" onClick="bukaModalBuatSoalManual()">
               ➕ Buat Soal Manual
             </button>
+            <button type="button" class="btn btn-purple text-white btn-sm fw-bold me-1" style="background-color: #6f42c1;" onClick="bukaModalGenAI()">🤖 Generator Soal AI (Gemini)
+            </button>
             <button type="button" class="btn btn-info text-white btn-sm fw-bold me-1" onClick="tinjauDanCetakSoal()">
               🔍 Tinjau & Cetak Soal
             </button>
@@ -504,6 +506,67 @@
         <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Batal</button>
         <button type="button" class="btn btn-primary fw-bold" onClick="tambahkanSoalManual()">➕ Tambahkan ke Draft</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GENERATOR SOAL AI (GEMINI) -->
+<div class="modal fade no-print" id="modalGenAI" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white" style="background: linear-gradient(45deg, #6f42c1, #0d6efd);">
+        <h5 class="modal-title fw-bold">🤖 Generator Soal Berbasis AI (Gemini)</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formGenAI">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Kode Soal</label>
+              <input type="text" id="aiKodeSoal" class="form-control" readonly>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Mata Pelajaran</label>
+              <input type="text" id="aiMapel" class="form-control" readonly placeholder="Diambil dari Pengaturan">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Tingkat / Kelas</label>
+              <input type="text" id="aiKelas" class="form-control" placeholder="Contoh: Kelas 7 SMP / X SMA">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Jumlah Soal PG</label>
+              <input type="number" id="aiJumlahPG" class="form-control" value="10" min="0" max="50">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Jumlah Soal Essai</label>
+              <input type="number" id="aiJumlahEssai" class="form-control" value="2" min="0" max="20">
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label fw-bold">Topik / Materi / Kompetensi Dasar</label>
+              <textarea id="aiTopik" class="form-control" rows="3" placeholder="Masukkan materi pembahasan, bab, atau indikator soal (Contoh: Penjumlahan Pecahan, Bentuk Aljabar, Persamaan Kuadrat)..." required></textarea>
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label fw-bold text-secondary">Draft Prompt Otomatis:</label>
+              <textarea id="aiGeneratedPrompt" class="form-control font-monospace bg-light" rows="5" readonly></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+<div class="modal-footer d-flex justify-content-between align-items-center">
+  <small class="text-muted">
+    💡 <i>Prompt akan disalin otomatis. Di Gemini, tinggal tekan <b>Ctrl + V</b> lalu Enter.</i>
+  </small>
+  <div>
+    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Batal</button>
+    <!-- Atribut target="_blank" bertugas membuka 1 tab Gemini secara bersih -->
+    <a href="https://gemini.google.com/app" target="_blank" class="btn btn-purple text-white fw-bold" style="background-color: #6f42c1;" onclick="salinPromptSaja(event)">
+      🚀 Salin Prompt & Buka Gemini
+    </a>
+  </div>
+</div>
     </div>
   </div>
 </div>
@@ -2269,6 +2332,148 @@ function lihatJawabanSiswa(idSiswa, kodeSoal) {
   const modalEl = document.getElementById("modalLihatJawaban");
   const modalObj = bootstrap.Modal.getOrCreateInstance(modalEl);
   modalObj.show();
+}
+
+let modalGenAIInstance = null;
+
+// Inisialisasi Modal AI saat DOMLoaded
+document.addEventListener("DOMContentLoaded", function() {
+  modalGenAIInstance = new bootstrap.Modal(document.getElementById('modalGenAI'));
+
+  // Event listener untuk mengupdate Prompt Otomatis secara Real-Time
+  const aiInputs = ['aiJumlahPG', 'aiJumlahEssai', 'aiTopik', 'aiKelas'];
+  aiInputs.forEach(id => {
+    document.getElementById(id)?.addEventListener('input', generatePromptText);
+  });
+});
+
+// Buka Modal Generator AI
+function bukaModalGenAI() {
+  const kode = getKodeSoal();
+  if (!kode) return;
+
+  const mapel = document.getElementById("cfgMapel")?.value || currentMapel || "-";
+  const kelas = document.getElementById("cfgDaftarKelas")?.value || "";
+
+  document.getElementById("aiKodeSoal").value = kode;
+  document.getElementById("aiMapel").value = mapel;
+  document.getElementById("aiKelas").value = kelas;
+
+  generatePromptText();
+  modalGenAIInstance.show();
+}
+
+function generatePromptText() {
+  // Ambil data parameter dinamis dari input form modal AI / dashboard
+  const kode = document.getElementById("aiKodeSoal")?.value || document.getElementById("kodeSoalInput")?.value || "";
+  const mapel = document.getElementById("aiMapel")?.value || document.getElementById("cfgMapel")?.value || "";
+  const kelas = document.getElementById("aiKelas")?.value || document.getElementById("cfgDaftarKelas")?.value || "";
+  const jmlPG = document.getElementById("aiJumlahPG")?.value || "10";
+  const jmlEssai = document.getElementById("aiJumlahEssai")?.value || "5";
+  const topik = document.getElementById("aiTopik")?.value || "";
+
+  // Susun teks prompt terstruktur
+  const promptText = `Buatkan bank soal untuk ujian sekolah dengan ketentuan sebagai berikut:
+- Mata Pelajaran: ${mapel}
+- Tingkat/Kelas: ${kelas}
+- Topik/Materi: ${topik}
+- Jumlah Soal Pilihan Ganda (PG): ${jmlPG}
+- Jumlah Soal Essai: ${jmlEssai}
+- Kode Soal: ${kode}
+
+lalu masukkan ke dalam format excel berikut:
+
+| Kode Soal | No Soal | Tipe | Pertanyaan | Opsi A | Opsi B | Opsi C | Opsi D | Kunci | Skor |
+
+Aturan Pengisian Tabel Excel:
+1. "Kode Soal": Isi seluruh baris dengan '${kode}'.
+2. "No Soal": Angka berurutan dari 1 sampai ${parseInt(jmlPG) + parseInt(jmlEssai)}.
+3. "Tipe": Isi 'PG' untuk Pilihan Ganda (nomor 1 sampai ${jmlPG}), dan 'ESSAI' untuk Uraian/Essai (nomor ${parseInt(jmlPG) + 1} sampai ${parseInt(jmlPG) + parseInt(jmlEssai)}).
+4. "Pertanyaan": Teks pertanyaan soal.
+5. "Opsi A", "Opsi B", "Opsi C", "Opsi D":
+   - Untuk Tipe PG: Wajib diisi pilihan jawabannya.
+   - Untuk Tipe ESSAI: Harus dikosongkan (TIDAK BOLEH ADA OPSI JAWABAN).
+6. "Kunci":
+   - Untuk Tipe PG: Isi huruf kapital kunci jawaban ('A', 'B', 'C', atau 'D').
+   - Untuk Tipe ESSAI: Isi tanda strip '-'.
+7. "Skor": Untuk PG berikan nilai 2, untuk ESSAI berikan nilai 10.
+
+Sajikan hasil balasan HANYA dalam bentuk TABEL EXCEL LENGKAP dan bisa diunduh.`;
+
+  const inputPrompt = document.getElementById("aiGeneratedPrompt");
+  if (inputPrompt) {
+    inputPrompt.value = promptText;
+  }
+}
+
+function salinDanBukaGemini() {
+  const promptText = document.getElementById("aiGeneratedPrompt")?.value || "";
+
+  if (!promptText.trim()) {
+    alert("Mohon isi topik/materi terlebih dahulu!");
+    return;
+  }
+
+  // 1. Langsung buka jendela/tab baru secara SINKRON agar tidak diblokir pop-up blocker
+  const geminiWindow = window.open("https://gemini.google.com/app", "_blank");
+
+  // 2. Salin teks prompt ke clipboard
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(promptText).then(() => {
+      alert("✅ Prompt Soal AI berhasil disalin!\n\nTab Gemini sudah dibuka. Silakan tekan Ctrl + V (Paste) di kotak chat Gemini.");
+    }).catch(err => {
+      fallbackCopyText(promptText);
+    });
+  } else {
+    fallbackCopyText(promptText);
+  }
+}
+
+// Fungsi cadangan jika Clipboard API diblokir browser
+function fallbackCopyText(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    alert("✅ Prompt Soal AI berhasil disalin!\n\nTab Gemini sudah dibuka. Silakan tekan Ctrl + V (Paste) di kotak chat Gemini.");
+  } catch (err) {
+    alert("Gagal menyalin otomatis. Silakan salin teks prompt secara manual dari kotak teks.");
+  }
+  document.body.removeChild(textArea);
+}
+
+function salinPromptSaja(e) {
+  const promptArea = document.getElementById("aiGeneratedPrompt");
+  const promptText = promptArea ? promptArea.value : "";
+
+  if (!promptText.trim()) {
+    alert("Mohon isi topik/materi terlebih dahulu!");
+    if (e) e.preventDefault(); // Batalkan buka tab jika topik kosong
+    return;
+  }
+
+  // 1. Pilih/Highlight teks pada textarea
+  promptArea.focus();
+  promptArea.select();
+  promptArea.setSelectionRange(0, 99999); // Untuk perangkat mobile/tablet
+
+  // 2. Eksekusi penyalinan teks ke clipboard
+  let suksesSalin = false;
+  try {
+    suksesSalin = document.execCommand("copy");
+  } catch (err) {
+    suksesSalin = false;
+  }
+
+  // Fallback ke Clipboard API modern jika execCommand gagal
+  if (!suksesSalin && navigator.clipboard) {
+    navigator.clipboard.writeText(promptText);
+  }
+
+  // Notifikasi konfirmasi singkat
+  alert("✅ Prompt Soal AI berhasil disalin!\n\nSilakan tekan Ctrl + V (Paste) pada kolom chat Gemini yang terbuka.");
 }
 
 </script>
