@@ -77,36 +77,36 @@
   </div>
 
   <!-- INPUT KODE SOAL UTAMA -->
-<div class="card card-custom mb-4 p-3 bg-white no-print">
-  <div class="row align-items-center">
-    <div class="col-md-3">
-      <label class="fw-bold" for="kodeSoalInput">Pilih / Masukkan Kode Soal:</label>
-    </div>
-    <div class="col-md-6">
-      <div class="input-group">
-        <input 
-          type="text" 
-          id="kodeSoalInput" 
-          class="form-control" 
-          list="listKodeSoal" 
-          placeholder="Ketik atau pilih dari daftar..."
-          autocomplete="off"
-        >
-        <datalist id="listKodeSoal">
-          <!-- Opsi akan terisi otomatis dari Google Sheet -->
-        </datalist>
-        <button class="btn btn-outline-secondary" type="button" onClick="muatDaftarKodeSoal()" title="Segarkan Daftar Kode Soal">
-          🔄
+  <div class="card card-custom mb-4 p-3 bg-white no-print">
+    <div class="row align-items-center">
+      <div class="col-md-3">
+        <label class="fw-bold" for="kodeSoalInput">Pilih / Masukkan Kode Soal:</label>
+      </div>
+      <div class="col-md-6">
+        <div class="input-group">
+          <input 
+            type="text" 
+            id="kodeSoalInput" 
+            class="form-control" 
+            list="listKodeSoal" 
+            placeholder="Ketik atau pilih dari daftar..."
+            autocomplete="off"
+          >
+          <datalist id="listKodeSoal">
+            <!-- Opsi akan terisi otomatis dari Google Sheet -->
+          </datalist>
+          <button class="btn btn-outline-secondary" type="button" onClick="muatDaftarKodeSoal()" title="Segarkan Daftar Kode Soal">
+            🔄
+          </button>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-primary w-100 fw-bold" id="btnMuatPengaturan" onClick="muatDataSoal()">
+          Muat Data Kode Soal
         </button>
       </div>
     </div>
-    <div class="col-md-3">
-      <button class="btn btn-primary w-100 fw-bold" id="btnMuatPengaturan" onClick="muatDataSoal()">
-        Muat Data Kode Soal
-      </button>
-    </div>
   </div>
-</div>
 
   <!-- TAB NAVIGASI UTAMA -->
   <ul class="nav nav-tabs mb-3 no-print" id="guruTab" role="tablist">
@@ -142,7 +142,7 @@
               <input type="text" id="cfgKodeUjian" class="form-control bg-light" readonly placeholder="Terisi otomatis dari Kode Soal di atas">
             </div>
 
-            <!-- FITUR INPUT MATA PELAJARAN (ID DISESUAIKAN DENGAN JS) -->
+            <!-- FITUR INPUT MATA PELAJARAN -->
             <div class="col-md-4">
               <label for="cfgMapel" class="form-label fw-bold">Mata Pelajaran (Mapel)</label>
               <select class="form-select" id="cfgMapel" name="mapel" required>
@@ -222,22 +222,22 @@
               <div class="form-text">Kelas-kelas di atas akan muncul sebagai pilihan Drop-Down pada halaman login/ujian siswa.</div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label fw-bold">Durasi Ujian (Menit)</label>
               <input type="number" id="cfgDurasi" class="form-control" value="90">
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label fw-bold">Penyusun Soal</label>
               <input type="text" id="cfgPenyusun" class="form-control" placeholder="Nama Guru Penyusun">
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-4">
               <label class="form-label fw-bold">Pengawas Ujian</label>
               <input type="text" id="cfgPengawas" class="form-control" placeholder="Nama Pengawas Ujian">
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label fw-bold">Status Ujian</label>
               <select id="cfgStatus" class="form-select">
                 <option value="Aktif">Aktif (Bisa Diakses)</option>
@@ -245,12 +245,22 @@
               </select>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label fw-bold">Acak Urutan Soal</label>
               <select id="cfgAcak" class="form-select">
                 <option value="Ya">Ya</option>
                 <option value="Tidak" selected>Tidak</option>
               </select>
+            </div>
+
+            <!-- FITUR BARU: OPSI TAMPILKAN SKOR KE SISWA -->
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Tampilkan Skor ke Siswa</label>
+              <select id="cfgTampilSkor" class="form-select">
+                <option value="Ya" selected>Ya (Tampilkan Skor)</option>
+                <option value="Tidak">Tidak (Sembunyikan Skor)</option>
+              </select>
+              <div class="form-text">Menentukan apakah nilai PG langsung muncul di layar siswa setelah kirim jawaban.</div>
             </div>
 
           </div>
@@ -261,6 +271,42 @@
 
     <!-- TAB 2: PENGELOLAAN & IMPORT SOAL -->
     <div class="tab-pane fade no-print" id="tab-import">
+      <!-- KARTU TABEL DAFTAR KODE SOAL YANG SUDAH DIBUAT -->
+      <div class="card card-custom p-4 bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="fw-bold mb-0 text-primary">📋 Daftar Kode Soal Terbuat</h5>
+            <small class="text-muted">Daftar seluruh paket bank soal yang tersimpan di sistem.</small>
+          </div>
+          <button class="btn btn-outline-primary btn-sm fw-bold" onClick="muatTabelDaftarKodeSoal()">
+            🔄 Refresh Tabel
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle" id="tabelDaftarKodeSoal">
+            <thead class="table-dark">
+              <tr>
+                <th style="width: 50px;" class="text-center">No</th>
+                <th>Kode Soal</th>
+                <th>Mata Pelajaran</th>
+                <th>Kelas</th>
+                <th class="text-center">Jumlah PG</th>
+                <th class="text-center">Jumlah Essai</th>
+                <th class="text-center">Total Soal</th>
+                <th class="text-center" style="width: 180px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tabelDaftarKodeBody">
+              <tr>
+                <td colspan="8" class="text-center py-3 text-muted">Memuat daftar kode soal...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KARTU UPLOAD & PEMBUATAN SOAL -->
       <div class="card card-custom p-4 bg-white">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="fw-bold mb-0">Upload & Pembuatan Soal</h5>
@@ -268,7 +314,8 @@
             <button type="button" class="btn btn-outline-primary btn-sm fw-bold me-1" onClick="bukaModalBuatSoalManual()">
               ➕ Buat Soal Manual
             </button>
-            <button type="button" class="btn btn-purple text-white btn-sm fw-bold me-1" style="background-color: #6f42c1;" onClick="bukaModalGenAI()">🤖 Generator Soal AI (Gemini)
+            <button type="button" class="btn btn-purple text-white btn-sm fw-bold me-1" style="background-color: #6f42c1;" onClick="bukaModalGenAI()">
+              🤖 Generator Soal AI (Gemini)
             </button>
             <button type="button" class="btn btn-info text-white btn-sm fw-bold me-1" onClick="tinjauDanCetakSoal()">
               🔍 Tinjau & Cetak Soal
@@ -555,18 +602,17 @@
           </div>
         </form>
       </div>
-<div class="modal-footer d-flex justify-content-between align-items-center">
-  <small class="text-muted">
-    💡 <i>Prompt akan disalin otomatis. Di Gemini, tinggal tekan <b>Ctrl + V</b> lalu Enter.</i>
-  </small>
-  <div>
-    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Batal</button>
-    <!-- Atribut target="_blank" bertugas membuka 1 tab Gemini secara bersih -->
-    <a href="https://gemini.google.com/app" target="_blank" class="btn btn-purple text-white fw-bold" style="background-color: #6f42c1;" onclick="salinPromptSaja(event)">
-      🚀 Salin Prompt & Buka Gemini
-    </a>
-  </div>
-</div>
+      <div class="modal-footer d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          💡 <i>Prompt akan disalin otomatis. Di Gemini, tinggal tekan <b>Ctrl + V</b> lalu Enter.</i>
+        </small>
+        <div>
+          <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Batal</button>
+          <a href="https://gemini.google.com/app" target="_blank" class="btn btn-purple text-white fw-bold" style="background-color: #6f42c1;" onclick="salinPromptSaja(event)">
+            🚀 Salin Prompt & Buka Gemini
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -623,7 +669,6 @@
 
       <div class="modal-footer no-print">
         <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Tutup</button>
-        <!-- Gunakan ID pada tombol agar parameter bisa diset lewat JS saat modal dibuka -->
         <button type="button" id="btnCetakLJ" class="btn btn-primary fw-bold">🖨️ Cetak Lembar Jawaban</button>
       </div>
     </div>
@@ -710,6 +755,7 @@
   let modalInputSoalInstance = null;
   let modalTinjauSoalInstance = null;
   let modalLihatJawabanInstance = null;
+  let modalGenAIInstance = null;
 
   async function apiPost(payload) {
     const res = await fetch(API_URL, {
@@ -767,6 +813,19 @@
     modalInputSoalInstance = new bootstrap.Modal(document.getElementById('modalInputSoal'));
     modalTinjauSoalInstance = new bootstrap.Modal(document.getElementById('modalTinjauSoal'));
     modalLihatJawabanInstance = new bootstrap.Modal(document.getElementById('modalLihatJawaban'));
+    modalGenAIInstance = new bootstrap.Modal(document.getElementById('modalGenAI'));
+
+    // Event Listener untuk Generator Prompt AI Real-time
+    const aiInputs = ['aiJumlahPG', 'aiJumlahEssai', 'aiTopik', 'aiKelas'];
+    aiInputs.forEach(id => {
+      document.getElementById(id)?.addEventListener('input', generatePromptText);
+    });
+
+    // Event Listener saat Tab Pengelolaan Soal diklik
+    const importTabEl = document.getElementById("import-tab");
+    if (importTabEl) {
+      importTabEl.addEventListener("click", muatTabelDaftarKodeSoal);
+    }
 
     const lastKode = localStorage.getItem("guru_last_kode_soal");
     if (lastKode) {
@@ -790,6 +849,8 @@
           muatHasilUjian();
         } else if (lastTab === "#tab-analisis" && lastKode) {
           muatAnalisisSoal();
+        } else if (lastTab === "#tab-import") {
+          muatTabelDaftarKodeSoal();
         }
       }
     }
@@ -945,6 +1006,7 @@
         selectDropdownValue("cfgJenisUjian", cfg.jenis_ujian || "");
         selectDropdownValue("cfgStatus", cfg.status_ujian || cfg.status || "Aktif");
         selectDropdownValue("cfgAcak", cfg.acak_soal || "Tidak");
+        selectDropdownValue("cfgTampilSkor", cfg.tampil_skor || cfg.tampilkan_skor || "Ya");
 
         alert(`Data pengaturan untuk kode '${kode}' berhasil dimuat.`);
       } else {
@@ -976,6 +1038,7 @@
     const elStatus = document.getElementById("cfgStatus");
     const elAcak = document.getElementById("cfgAcak");
     const elKelas = document.getElementById("cfgDaftarKelas");
+    const elTampilSkor = document.getElementById("cfgTampilSkor");
 
     const payload = {
       action: "savePengaturan",
@@ -987,7 +1050,8 @@
       pengawas: elPengawas ? elPengawas.value : "",
       status_ujian: elStatus ? elStatus.value : "Aktif",
       acak_soal: elAcak ? elAcak.value : "Tidak",
-      kelas: elKelas ? elKelas.value.trim() : ""
+      kelas: elKelas ? elKelas.value.trim() : "",
+      tampil_skor: elTampilSkor ? elTampilSkor.value : "Ya"
     };
 
     try {
@@ -1076,173 +1140,160 @@
     modalInputSoalInstance.hide();
   }
 
-async function tinjauDanCetakSoal(kodeSoal) {
-  // Jika kodeSoal tidak dikirim via parameter, ambil dari input box utama di dashboard
-  if (!kodeSoal || typeof kodeSoal !== "string") {
-    kodeSoal = typeof getKodeSoal === "function" ? getKodeSoal() : document.getElementById("kodeSoalInput")?.value.trim().toUpperCase();
-  }
+  async function tinjauDanCetakSoal(kodeSoal) {
+    if (!kodeSoal || typeof kodeSoal !== "string") {
+      kodeSoal = typeof getKodeSoal === "function" ? getKodeSoal() : document.getElementById("kodeSoalInput")?.value.trim().toUpperCase();
+    }
 
-  if (!kodeSoal) {
-    alert("Kode soal tidak boleh kosong! Silakan isi atau pilih Kode Soal terlebih dahulu.");
-    return;
-  }
-
-  try {
-    console.log("Mengambil data soal untuk kode:", kodeSoal);
-
-    // Gunakan variabel API_URL yang sudah didefinisikan di config.js
-    const targetUrl = typeof API_URL !== "undefined" ? API_URL : (typeof SCRIPT_URL !== "undefined" ? SCRIPT_URL : "");
-
-    // 1. Request data soal dari backend
-    const response = await fetch(targetUrl, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        action: "getSoalByKode",
-        kode_soal: kodeSoal
-      })
-    });
-
-    const result = await response.json();
-
-    if (result.status !== "success" || !result.data || result.data.length === 0) {
-      alert(result.message || "Data soal tidak ditemukan untuk kode: " + kodeSoal);
+    if (!kodeSoal) {
+      alert("Kode soal tidak boleh kosong! Silakan isi atau pilih Kode Soal terlebih dahulu.");
       return;
     }
 
-    const listSoal = result.data;
+    try {
+      const targetUrl = typeof API_URL !== "undefined" ? API_URL : (typeof SCRIPT_URL !== "undefined" ? SCRIPT_URL : "");
 
-    // 2. Request data pengaturan (Header Naskah Soal)
-    const resPengaturan = await fetch(targetUrl, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        action: "getPengaturan",
-        kode: kodeSoal,
-        kode_soal: kodeSoal
-      })
-    });
-    
-    const dataCfg = await resPengaturan.json();
-    const config = (dataCfg.status === "success" && dataCfg.data) 
-      ? (Array.isArray(dataCfg.data) ? dataCfg.data[0] : dataCfg.data) 
-      : {};
+      const response = await fetch(targetUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "getSoalByKode",
+          kode_soal: kodeSoal
+        })
+      });
 
-    // 3. Buka tab/jendela baru untuk dokumen cetak
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      alert("Pop-up diblokir oleh browser! Harap izinkan pop-up untuk mencetak.");
-      return;
-    }
+      const result = await response.json();
 
-    // 4. Susun HTML Dokumen Soal
-    let htmlContent = `
-      <!DOCTYPE html>
-      <html lang="id">
-      <head>
-        <meta charset="UTF-8">
-        <title>Naskah Soal - ${kodeSoal}</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; color: #000; line-height: 1.4; }
-          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-          .header h2, .header h3 { margin: 2px 0; text-transform: uppercase; }
-          .meta-table { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
-          .meta-table td { padding: 4px; font-size: 14px; }
-          .soal-item { margin-bottom: 15px; page-break-inside: avoid; }
-          .soal-text { font-weight: bold; margin-bottom: 5px; }
-          .opsi-list { list-style-type: none; padding-left: 20px; margin: 5px 0; }
-          .opsi-list li { margin-bottom: 3px; }
-          @media print {
-            body { margin: 0; }
-            .no-print { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="no-print" style="margin-bottom: 15px; text-align: right;">
-          <button onclick="window.print()" style="padding: 8px 16px; font-weight: bold; cursor: pointer;">🖨️ Cetak Dokumen</button>
-        </div>
-
-        <div class="header">
-          <h2>NASKAH SOAL UJIAN</h2>
-          <h3>${config.jenis_ujian || "PENILAIAN UJIAN"}</h3>
-        </div>
-
-        <table class="meta-table">
-          <tr>
-            <td width="15%"><strong>Mata Pelajaran</strong></td>
-            <td width="35%">: ${config.mata_pelajaran || config.mapel || "-"}</td>
-            <td width="15%"><strong>Kelas/Tingkat</strong></td>
-            <td width="35%">: ${config.kelas || config.daftar_kelas || "-"}</td>
-          </tr>
-          <tr>
-            <td><strong>Kode Soal</strong></td>
-            <td>: ${kodeSoal}</td>
-            <td><strong>Waktu / Durasi</strong></td>
-            <td>: ${config.durasi || 90} Menit</td>
-          </tr>
-        </table>
-        <hr style="border: 1px solid #000; margin-bottom: 20px;">
-        <div class="soal-container">
-    `;
-
-    // 5. Loop data soal
-    listSoal.forEach((item, index) => {
-      const no = item.no_soal || item["No Soal"] || (index + 1);
-      const tipe = String(item.tipe || item["Tipe"] || "PG").trim().toUpperCase();
-      const pertanyaan = item.pertanyaan || item["Pertanyaan"] || "";
-      const opA = item.opA || item["Opsi A"] || "";
-      const opB = item.opB || item["Opsi B"] || "";
-      const opC = item.opC || item["Opsi C"] || "";
-      const opD = item.opD || item["Opsi D"] || "";
-
-      // Cek apakah tipe soal merupakan PG/Pilgan
-      const isPG = tipe === "PG" || tipe === "PILGAN";
-
-      htmlContent += `
-        <div class="soal-item">
-          <div class="soal-text">${no}. ${pertanyaan}</div>
-      `;
-
-      // Tampilkan opsi A, B, C, D HANYA JIKA tipe soal adalah PG
-      if (isPG) {
-        htmlContent += `
-          <ul class="opsi-list">
-            ${opA ? `<li>A. ${opA}</li>` : ''}
-            ${opB ? `<li>B. ${opB}</li>` : ''}
-            ${opC ? `<li>C. ${opC}</li>` : ''}
-            ${opD ? `<li>D. ${opD}</li>` : ''}
-          </ul>
-        `;
+      if (result.status !== "success" || !result.data || result.data.length === 0) {
+        alert(result.message || "Data soal tidak ditemukan untuk kode: " + kodeSoal);
+        return;
       }
 
-      htmlContent += `
-        </div>
+      const listSoal = result.data;
+
+      const resPengaturan = await fetch(targetUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "getPengaturan",
+          kode: kodeSoal,
+          kode_soal: kodeSoal
+        })
+      });
+      
+      const dataCfg = await resPengaturan.json();
+      const config = (dataCfg.status === "success" && dataCfg.data) 
+        ? (Array.isArray(dataCfg.data) ? dataCfg.data[0] : dataCfg.data) 
+        : {};
+
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        alert("Pop-up diblokir oleh browser! Harap izinkan pop-up untuk mencetak.");
+        return;
+      }
+
+      let htmlContent = `
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+          <meta charset="UTF-8">
+          <title>Naskah Soal - ${kodeSoal}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; color: #000; line-height: 1.4; }
+            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+            .header h2, .header h3 { margin: 2px 0; text-transform: uppercase; }
+            .meta-table { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
+            .meta-table td { padding: 4px; font-size: 14px; }
+            .soal-item { margin-bottom: 15px; page-break-inside: avoid; }
+            .soal-text { font-weight: bold; margin-bottom: 5px; }
+            .opsi-list { list-style-type: none; padding-left: 20px; margin: 5px 0; }
+            .opsi-list li { margin-bottom: 3px; }
+            @media print {
+              body { margin: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="no-print" style="margin-bottom: 15px; text-align: right;">
+            <button onclick="window.print()" style="padding: 8px 16px; font-weight: bold; cursor: pointer;">🖨️ Cetak Dokumen</button>
+          </div>
+
+          <div class="header">
+            <h2>NASKAH SOAL UJIAN</h2>
+            <h3>${config.jenis_ujian || "PENILAIAN UJIAN"}</h3>
+          </div>
+
+          <table class="meta-table">
+            <tr>
+              <td width="15%"><strong>Mata Pelajaran</strong></td>
+              <td width="35%">: ${config.mata_pelajaran || config.mapel || "-"}</td>
+              <td width="15%"><strong>Kelas/Tingkat</strong></td>
+              <td width="35%">: ${config.kelas || config.daftar_kelas || "-"}</td>
+            </tr>
+            <tr>
+              <td><strong>Kode Soal</strong></td>
+              <td>: ${kodeSoal}</td>
+              <td><strong>Waktu / Durasi</strong></td>
+              <td>: ${config.durasi || 90} Menit</td>
+            </tr>
+          </table>
+          <hr style="border: 1px solid #000; margin-bottom: 20px;">
+          <div class="soal-container">
       `;
-    });
 
-    htmlContent += `
-        </div>
-      </body>
-      </html>
-    `;
+      listSoal.forEach((item, index) => {
+        const no = item.no_soal || item["No Soal"] || (index + 1);
+        const tipe = String(item.tipe || item["Tipe"] || "PG").trim().toUpperCase();
+        const pertanyaan = item.pertanyaan || item["Pertanyaan"] || "";
+        const opA = item.opA || item["Opsi A"] || "";
+        const opB = item.opB || item["Opsi B"] || "";
+        const opC = item.opC || item["Opsi C"] || "";
+        const opD = item.opD || item["Opsi D"] || "";
 
-    // 6. Tulis ke jendela baru & trigger cetak
-    printWindow.document.open();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+        const isPG = tipe === "PG" || tipe === "PILGAN";
 
-    printWindow.onload = () => {
-      printWindow.focus();
-      printWindow.print();
-    };
+        htmlContent += `
+          <div class="soal-item">
+            <div class="soal-text">${no}. ${pertanyaan}</div>
+        `;
 
-  } catch (error) {
-    console.error("Gagal mencetak soal:", error);
-    alert("Terjadi kesalahan teknis saat mengambil data naskah soal.");
+        if (isPG) {
+          htmlContent += `
+            <ul class="opsi-list">
+              ${opA ? `<li>A. ${opA}</li>` : ''}
+              ${opB ? `<li>B. ${opB}</li>` : ''}
+              ${opC ? `<li>C. ${opC}</li>` : ''}
+              ${opD ? `<li>D. ${opD}</li>` : ''}
+            </ul>
+          `;
+        }
+
+        htmlContent += `
+          </div>
+        `;
+      });
+
+      htmlContent += `
+          </div>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+
+      printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+      };
+
+    } catch (error) {
+      console.error("Gagal mencetak soal:", error);
+      alert("Terjadi kesalahan teknis saat mengambil data naskah soal.");
+    }
   }
-}
-
 
   function prosesUploadFile(event) {
     const file = event.target.files[0];
@@ -1397,6 +1448,19 @@ async function tinjauDanCetakSoal(kodeSoal) {
       return;
     }
 
+    // --- CEK DUPLIKASI KODE SOAL SEBELUM MENYIMPAN ---
+    try {
+      const cekRes = await apiPost({ action: "cekKodeSoalExist", kode_soal: kode });
+      if (cekRes.exists) {
+        const konfirmasiOtim = confirm(`⚠️ Kode soal '${kode}' SUDAH ADA di database!\n\nApakah Anda ingin MENIMPA / MENGGANTI soal lama dengan soal baru ini?`);
+        if (!konfirmasiOtim) {
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Gagal mengecek duplikasi kode, melanjutkan proses simpan...", e);
+    }
+
     const btnSimpan = document.getElementById("btnSimpanSoal");
     const teksAsli = btnSimpan.innerHTML;
     btnSimpan.disabled = true;
@@ -1411,6 +1475,7 @@ async function tinjauDanCetakSoal(kodeSoal) {
     try {
       const result = await apiPost(payload);
       alert(result.message || "Soal berhasil disimpan ke database!");
+      muatTabelDaftarKodeSoal();
     } catch (e) {
       alert("Gagal mengimport soal: " + e.message);
     } finally {
@@ -1500,168 +1565,159 @@ async function tinjauDanCetakSoal(kodeSoal) {
     });
   }
 
-async function bukaModalLihatJawaban(index) {
-  const item = rawDataHasil[index];
-  if (!item) return;
+  async function bukaModalLihatJawaban(index) {
+    const item = rawDataHasil[index];
+    if (!item) return;
 
-  const kode = typeof getKodeSoal === 'function' ? getKodeSoal() : "";
+    const kode = typeof getKodeSoal === 'function' ? getKodeSoal() : "";
 
-  // =========================================================
-  // PERBAIKAN: Hubungkan tombol cetak dengan fungsi cetak
-  // =========================================================
-  const btnCetak = document.getElementById("btnCetakLJ");
-  if (btnCetak) {
-    btnCetak.onclick = function() {
-      // Opsi 1: Cetak khusus area modal lembar jawaban
-      cetakAreaModalJawaban();
-      
-      // Opsi 2 (Alternatif): Jika ingin memanggil cetak lembar jawaban kosong/naskah
-      // tinjauDanCetakLembarJawaban(kode);
+    const btnCetak = document.getElementById("btnCetakLJ");
+    if (btnCetak) {
+      btnCetak.onclick = function() {
+        cetakAreaModalJawaban();
+      };
+    }
+
+    if ((!window.rawDataAnalisis || window.rawDataAnalisis.length === 0) && kode) {
+      try {
+        const payload = { action: "analisisSoal", kode_soal: kode };
+        const result = await apiPost(payload);
+        if (result.status === "success") {
+          window.rawDataAnalisis = result.analisis || result.data || [];
+        }
+      } catch (e) {
+        console.error("Gagal mengambil kunci dari analisis:", e);
+      }
+    }
+
+    const mapKunciAnalisis = {};
+    if (window.rawDataAnalisis && Array.isArray(window.rawDataAnalisis)) {
+      window.rawDataAnalisis.forEach(a => {
+        if (a.no_soal !== undefined) {
+          mapKunciAnalisis[a.no_soal] = a.kunci;
+        }
+      });
+    }
+
+    document.getElementById("ljNamaSiswa").innerText = item.nama;
+    document.getElementById("ljNoPeserta").innerText = item.no_peserta || item.noPeserta || '-';
+    document.getElementById("ljKelasSiswa").innerText = item.kelas;
+    document.getElementById("ljMapel").innerText = document.getElementById("cfgMapel").value || currentMapel || "-";
+
+    const pg = parseFloat(item.skor_pg || 0);
+    const es = parseFloat(item.nilai_essai || 0);
+    document.getElementById("ljTotalNilai").innerText = pg + es;
+
+    let detailJawaban = {};
+    try { detailJawaban = typeof item.detail_jawaban === 'string' ? JSON.parse(item.detail_jawaban) : item.detail_jawaban; } catch(e){}
+
+    let detailNilaiEssai = {};
+    try { detailNilaiEssai = typeof item.detail_nilai_essai === 'string' ? JSON.parse(item.detail_nilai_essai) : (item.detail_nilai_essai || {}); } catch(e){}
+
+    const container = document.getElementById("containerLembarJawabanLengkap");
+    container.innerHTML = "";
+
+    if (!rawDataBankSoal || rawDataBankSoal.length === 0) {
+      container.innerHTML = `<div class="alert alert-warning">Data bank soal tidak ditemukan untuk perbandingan.</div>`;
+      modalLihatJawabanInstance.show();
+      return;
+    }
+
+    rawDataBankSoal.forEach((soal, idx) => {
+      const noSoalKey = idx + 1;
+      const noSoal = soal.no_soal || noSoalKey;
+      const tipe = String(soal.tipe || "PG").trim().toUpperCase();
+      const isPG = tipe === "PG" || tipe === "PILGAN";
+
+      const meJawabRaw = detailJawaban[noSoalKey] ?? 
+                         detailJawaban[String(noSoalKey)] ?? 
+                         detailJawaban[noSoal] ?? 
+                         detailJawaban[String(noSoal)] ?? "-";
+
+      let statusBadge = "";
+      let detailHtml = "";
+
+      if (isPG) {
+        const kunciRaw = soal.kunci || soal.kunci_jawaban || mapKunciAnalisis[noSoal] || mapKunciAnalisis[noSoalKey] || "";
+        const kunci = String(kunciRaw).trim().toUpperCase();
+        const meUpper = String(meJawabRaw).trim().toUpperCase();
+
+        const isBenar = meUpper !== "" && meUpper !== "-" && meUpper === kunci;
+
+        statusBadge = isBenar 
+          ? `<span class="badge bg-success">BENAR (+${soal.skor || 2})</span>` 
+          : `<span class="badge bg-danger">SALAH (0)</span>`;
+
+        detailHtml = `
+          <div class="row mt-2">
+            <div class="col-6">Jawaban Siswa: <strong class="${isBenar ? 'text-success' : 'text-danger'}">${meJawabRaw}</strong></div>
+            <div class="col-6">Kunci Jawaban: <strong class="text-primary">${kunci || "-"}</strong></div>
+          </div>
+        `;
+      } else {
+        const nilaiEss = detailNilaiEssai[noSoalKey] ?? detailNilaiEssai[String(noSoalKey)] ?? 0;
+        statusBadge = `<span class="badge bg-info text-dark">Skor Essai: ${nilaiEss} / ${soal.skor || 10}</span>`;
+        detailHtml = `
+          <div class="p-2 bg-light rounded border mt-2">
+            <strong>Jawaban Essai Siswa:</strong>
+            <div>${meJawabRaw}</div>
+          </div>
+        `;
+      }
+
+      container.innerHTML += `
+        <div class="card mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>No. ${noSoal} (${tipe})</span>
+            ${statusBadge}
+          </div>
+          <div class="card-body">
+            <p class="mb-1"><strong>Soal:</strong> ${soal.pertanyaan || '-'}</p>
+            ${detailHtml}
+          </div>
+        </div>
+      `;
+    });
+
+    modalLihatJawabanInstance.show();
+  }
+
+  function cetakAreaModalJawaban() {
+    const isiModal = document.getElementById("areaCetakModal").innerHTML;
+    const printWindow = window.open("", "_blank");
+    
+    if (!printWindow) {
+      alert("Pop-up diblokir browser! Izinkan pop-up untuk mencetak.");
+      return;
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="id">
+      <head>
+        <meta charset="UTF-8">
+        <title>Cetak Lembar Jawaban Siswa</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+          body { padding: 20px; font-family: Arial, sans-serif; background: #fff; }
+          @media print {
+            .no-print { display: none !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <h3 class="text-center mb-4 fw-bold">HASIL & LEMBAR JAWABAN SISWA</h3>
+        ${isiModal}
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
     };
   }
-
-  // 1. Ambil data analisis dari server secara otomatis jika rawDataAnalisis belum ada
-  if ((!window.rawDataAnalisis || window.rawDataAnalisis.length === 0) && kode) {
-    try {
-      const payload = { action: "analisisSoal", kode_soal: kode };
-      const result = await apiPost(payload);
-      if (result.status === "success") {
-        window.rawDataAnalisis = result.analisis || result.data || [];
-      }
-    } catch (e) {
-      console.error("Gagal mengambil kunci dari analisis:", e);
-    }
-  }
-
-  // 2. Map kunci jawaban berdasarkan nomor soal dari rawDataAnalisis
-  const mapKunciAnalisis = {};
-  if (window.rawDataAnalisis && Array.isArray(window.rawDataAnalisis)) {
-    window.rawDataAnalisis.forEach(a => {
-      if (a.no_soal !== undefined) {
-        mapKunciAnalisis[a.no_soal] = a.kunci;
-      }
-    });
-  }
-
-  document.getElementById("ljNamaSiswa").innerText = item.nama;
-  document.getElementById("ljNoPeserta").innerText = item.no_peserta || item.noPeserta || '-';
-  document.getElementById("ljKelasSiswa").innerText = item.kelas;
-  document.getElementById("ljMapel").innerText = document.getElementById("cfgMapel").value || currentMapel || "-";
-
-  const pg = parseFloat(item.skor_pg || 0);
-  const es = parseFloat(item.nilai_essai || 0);
-  document.getElementById("ljTotalNilai").innerText = pg + es;
-
-  let detailJawaban = {};
-  try { detailJawaban = typeof item.detail_jawaban === 'string' ? JSON.parse(item.detail_jawaban) : item.detail_jawaban; } catch(e){}
-
-  let detailNilaiEssai = {};
-  try { detailNilaiEssai = typeof item.detail_nilai_essai === 'string' ? JSON.parse(item.detail_nilai_essai) : (item.detail_nilai_essai || {}); } catch(e){}
-
-  const container = document.getElementById("containerLembarJawabanLengkap");
-  container.innerHTML = "";
-
-  if (!rawDataBankSoal || rawDataBankSoal.length === 0) {
-    container.innerHTML = `<div class="alert alert-warning">Data bank soal tidak ditemukan untuk perbandingan.</div>`;
-    modalLihatJawabanInstance.show();
-    return;
-  }
-
-  rawDataBankSoal.forEach((soal, idx) => {
-    const noSoalKey = idx + 1;
-    const noSoal = soal.no_soal || noSoalKey;
-    const tipe = String(soal.tipe || "PG").trim().toUpperCase();
-    const isPG = tipe === "PG" || tipe === "PILGAN";
-
-    const meJawabRaw = detailJawaban[noSoalKey] ?? 
-                       detailJawaban[String(noSoalKey)] ?? 
-                       detailJawaban[noSoal] ?? 
-                       detailJawaban[String(noSoal)] ?? "-";
-
-    let statusBadge = "";
-    let detailHtml = "";
-
-    if (isPG) {
-      const kunciRaw = soal.kunci || soal.kunci_jawaban || mapKunciAnalisis[noSoal] || mapKunciAnalisis[noSoalKey] || "";
-      const kunci = String(kunciRaw).trim().toUpperCase();
-      const meUpper = String(meJawabRaw).trim().toUpperCase();
-
-      const isBenar = meUpper !== "" && meUpper !== "-" && meUpper === kunci;
-
-      statusBadge = isBenar 
-        ? `<span class="badge bg-success">BENAR (+${soal.skor || 2})</span>` 
-        : `<span class="badge bg-danger">SALAH (0)</span>`;
-
-      detailHtml = `
-        <div class="row mt-2">
-          <div class="col-6">Jawaban Siswa: <strong class="${isBenar ? 'text-success' : 'text-danger'}">${meJawabRaw}</strong></div>
-          <div class="col-6">Kunci Jawaban: <strong class="text-primary">${kunci || "-"}</strong></div>
-        </div>
-      `;
-    } else {
-      const nilaiEss = detailNilaiEssai[noSoalKey] ?? detailNilaiEssai[String(noSoalKey)] ?? 0;
-      statusBadge = `<span class="badge bg-info text-dark">Skor Essai: ${nilaiEss} / ${soal.skor || 10}</span>`;
-      detailHtml = `
-        <div class="p-2 bg-light rounded border mt-2">
-          <strong>Jawaban Essai Siswa:</strong>
-          <div>${meJawabRaw}</div>
-        </div>
-      `;
-    }
-
-    container.innerHTML += `
-      <div class="card mb-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>No. ${noSoal} (${tipe})</span>
-          ${statusBadge}
-        </div>
-        <div class="card-body">
-          <p class="mb-1"><strong>Soal:</strong> ${soal.pertanyaan || '-'}</p>
-          ${detailHtml}
-        </div>
-      </div>
-    `;
-  });
-
-  modalLihatJawabanInstance.show();
-}
-
-function cetakAreaModalJawaban() {
-  const isiModal = document.getElementById("areaCetakModal").innerHTML;
-  const printWindow = window.open("", "_blank");
-  
-  if (!printWindow) {
-    alert("Pop-up diblokir browser! Izinkan pop-up untuk mencetak.");
-    return;
-  }
-
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html lang="id">
-    <head>
-      <meta charset="UTF-8">
-      <title>Cetak Lembar Jawaban Siswa</title>
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-      <style>
-        body { padding: 20px; font-family: Arial, sans-serif; background: #fff; }
-        @media print {
-          .no-print { display: none !important; }
-        }
-      </style>
-    </head>
-    <body>
-      <h3 class="text-center mb-4 fw-bold">HASIL & LEMBAR JAWABAN SISWA</h3>
-      ${isiModal}
-    </body>
-    </html>
-  `);
-
-  printWindow.document.close();
-  printWindow.onload = () => {
-    printWindow.focus();
-    printWindow.print();
-  };
-}
 
   function populasiFilterKelas() {
     const select = document.getElementById("filterKelasSelect");
@@ -2048,332 +2104,65 @@ function cetakAreaModalJawaban() {
   }
   
   async function muatDaftarKodeSoal() {
-  const datalist = document.getElementById("listKodeSoal");
-  if (!datalist) return;
+    const datalist = document.getElementById("listKodeSoal");
+    if (!datalist) return;
 
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      mode: "cors",
-      redirect: "follow",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "getdaftarkodesoal" }) // Menyesuaikan action huruf kecil dari halaman ujian
-    });
-
-    if (!res.ok) {
-      throw new Error("HTTP Status: " + res.status);
-    }
-
-    const response = await res.json();
-
-    if (response.status === "success" && Array.isArray(response.data)) {
-      // Bersihkan list sebelum mengisi data baru
-      datalist.innerHTML = ""; 
-
-      response.data.forEach(kode => {
-        const option = document.createElement("option");
-        option.value = kode;
-        datalist.appendChild(option);
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "getdaftarkodesoal" })
       });
-    } else {
-      console.warn("Gagal memuat daftar kode soal:", response.message);
+
+      if (!res.ok) {
+        throw new Error("HTTP Status: " + res.status);
+      }
+
+      const response = await res.json();
+
+      if (response.status === "success" && Array.isArray(response.data)) {
+        datalist.innerHTML = ""; 
+
+        response.data.forEach(kode => {
+          const option = document.createElement("option");
+          option.value = kode;
+          datalist.appendChild(option);
+        });
+      } else {
+        console.warn("Gagal memuat daftar kode soal:", response.message);
+      }
+    } catch (err) {
+      console.error("Gagal memuat kode soal:", err);
     }
-  } catch (err) {
-    console.error("Gagal memuat kode soal:", err);
-  }
-}
-
-async function tinjauDanCetakLembarJawaban(kodeSoal) {
-  if (!kodeSoal || typeof kodeSoal !== "string") {
-    kodeSoal = typeof getKodeSoal === "function" ? getKodeSoal() : document.getElementById("kodeSoalInput")?.value.trim().toUpperCase();
   }
 
-  if (!kodeSoal) {
-    alert("Kode soal tidak boleh kosong!");
-    return;
+  // --- FUNGSI GENERATOR SOAL AI (GEMINI) ---
+  function bukaModalGenAI() {
+    const kode = getKodeSoal();
+    if (!kode) return;
+
+    const mapel = document.getElementById("cfgMapel")?.value || currentMapel || "-";
+    const kelas = document.getElementById("cfgDaftarKelas")?.value || "";
+
+    document.getElementById("aiKodeSoal").value = kode;
+    document.getElementById("aiMapel").value = mapel;
+    document.getElementById("aiKelas").value = kelas;
+
+    generatePromptText();
+    modalGenAIInstance.show();
   }
 
-  try {
-    const targetUrl = typeof API_URL !== "undefined" ? API_URL : (typeof SCRIPT_URL !== "undefined" ? SCRIPT_URL : "");
+  function generatePromptText() {
+    const kode = document.getElementById("aiKodeSoal")?.value || document.getElementById("kodeSoalInput")?.value || "";
+    const mapel = document.getElementById("aiMapel")?.value || document.getElementById("cfgMapel")?.value || "";
+    const kelas = document.getElementById("aiKelas")?.value || document.getElementById("cfgDaftarKelas")?.value || "";
+    const jmlPG = document.getElementById("aiJumlahPG")?.value || "10";
+    const jmlEssai = document.getElementById("aiJumlahEssai")?.value || "5";
+    const topik = document.getElementById("aiTopik")?.value || "";
 
-    // 1. Ambil data soal
-    const resSoal = await fetch(targetUrl, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "getSoalByKode", kode_soal: kodeSoal })
-    });
-    const resultSoal = await resSoal.json();
-
-    if (resultSoal.status !== "success" || !resultSoal.data || resultSoal.data.length === 0) {
-      alert("Data soal tidak ditemukan.");
-      return;
-    }
-
-    const listSoal = resultSoal.data;
-
-    // 2. Ambil data pengaturan
-    const resPengaturan = await fetch(targetUrl, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "getPengaturan", kode_soal: kodeSoal })
-    });
-    const dataCfg = await resPengaturan.json();
-    const config = (dataCfg.status === "success" && dataCfg.data) 
-      ? (Array.isArray(dataCfg.data) ? dataCfg.data[0] : dataCfg.data) 
-      : {};
-
-    // 3. Buka jendela cetak
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      alert("Pop-up diblokir oleh browser! Harap izinkan pop-up.");
-      return;
-    }
-
-    // Filter soal PG dan Essai
-    const soalPG = listSoal.filter(item => {
-      const tipe = String(item.tipe || item["Tipe"] || "PG").trim().toUpperCase();
-      return tipe === "PG" || tipe === "PILGAN";
-    });
-
-    const soalEssai = listSoal.filter(item => {
-      const tipe = String(item.tipe || item["Tipe"] || "").trim().toUpperCase();
-      return tipe === "ESSAI" || tipe === "ESSAY" || tipe === "URAIAN";
-    });
-
-    // 4. Susun HTML dengan CSS Cetak yang Aman (Multi-page Fix)
-    let htmlContent = `
-      <!DOCTYPE html>
-      <html lang="id">
-      <head>
-        <meta charset="UTF-8">
-        <title>Lembar Jawaban - ${kodeSoal}</title>
-        <style>
-          /* Pengaturan Dasar untuk Cetak */
-          html, body {
-            width: 100%;
-            height: auto !important; /* Mencegah terpotong 1 halaman */
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background: #fff;
-            color: #000;
-          }
-
-          .container {
-            padding: 20px;
-            box-sizing: border-box;
-          }
-
-          /* Header Lembar Jawaban */
-          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px; }
-          .header h2, .header h3 { margin: 2px 0; text-transform: uppercase; font-size: 16px; }
-
-          .meta-table { width: 100%; margin-bottom: 15px; border-collapse: collapse; }
-          .meta-table td { padding: 3px; font-size: 13px; vertical-align: top; }
-
-          .section-title { font-weight: bold; margin: 10px 0 5px 0; font-size: 14px; border-bottom: 1px solid #ccc; padding-bottom: 2px; }
-
-          /* Grid Lembar Jawaban PG */
-          .grid-pg {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 kolom nomor */
-            gap: 8px 20px;
-            margin-bottom: 20px;
-          }
-
-          .ljk-item {
-            display: flex;
-            align-items: center;
-            font-size: 12px;
-          }
-          .ljk-no { width: 30px; font-weight: bold; text-align: right; margin-right: 8px; }
-          .ljk-options { display: flex; gap: 8px; }
-          .circle {
-            width: 18px;
-            height: 18px;
-            border: 1px solid #000;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
-          }
-
-          /* Box Jawaban Essai */
-          .essai-item {
-            margin-bottom: 12px;
-            page-break-inside: avoid; /* Menjaga agar kotak essai tidak terpotong di tengah halaman */
-          }
-          .essai-box {
-            border: 1px solid #000;
-            height: 70px;
-            margin-top: 4px;
-            width: 100%;
-          }
-
-          /* Aturan Khusus Cetak (Print Stylesheet) */
-          @media print {
-            body { margin: 0; padding: 0; }
-            .no-print { display: none !important; }
-            .page-break { page-break-before: always; }
-            
-            /* Penting: hindari pemotongan halaman */
-            html, body, .container {
-              overflow: visible !important;
-              height: auto !important;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="no-print" style="padding: 10px; text-align: right; background: #f0f0f0; margin-bottom: 10px;">
-          <button onclick="window.print()" style="padding: 8px 16px; font-weight: bold; cursor: pointer;">🖨️ Cetak Lembar Jawaban</button>
-        </div>
-
-        <div class="container">
-          <div class="header">
-            <h2>LEMBAR JAWABAN UJIAN</h2>
-            <h3>${config.jenis_ujian || "PENILAIAN UJIAN"}</h3>
-          </div>
-
-          <table class="meta-table">
-            <tr>
-              <td width="15%"><strong>Nama Siswa</strong></td>
-              <td width="35%">: .......................................................</td>
-              <td width="15%"><strong>Mata Pelajaran</strong></td>
-              <td width="35%">: ${config.mata_pelajaran || config.mapel || "-"}</td>
-            </tr>
-            <tr>
-              <td><strong>No. Ujian / NIS</strong></td>
-              <td>: .......................................................</td>
-              <td><strong>Kelas / Tingkat</strong></td>
-              <td>: ${config.kelas || config.daftar_kelas || "-"}</td>
-            </tr>
-            <tr>
-              <td><strong>Kode Soal</strong></td>
-              <td>: ${kodeSoal}</td>
-              <td><strong>Tanggal</strong></td>
-              <td>: .......................................................</td>
-            </tr>
-          </table>
-
-          <!-- BAGIAN I: PILIHAN GANDA -->
-          ${soalPG.length > 0 ? `
-            <div class="section-title">I. LEMBAR JAWABAN PILIHAN GANDA</div>
-            <div class="grid-pg">
-              ${soalPG.map((item, idx) => {
-                const no = item.no_soal || item["No Soal"] || (idx + 1);
-                return `
-                  <div class="ljk-item">
-                    <span class="ljk-no">${no}.</span>
-                    <div class="ljk-options">
-                      <div class="circle">A</div>
-                      <div class="circle">B</div>
-                      <div class="circle">C</div>
-                      <div class="circle">D</div>
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          ` : ''}
-
-          <!-- BAGIAN II: ESSAI / URAIAN -->
-          ${soalEssai.length > 0 ? `
-            <div class="section-title" style="margin-top: 15px;">II. LEMBAR JAWABAN URAIAN / ESSAI</div>
-            ${soalEssai.map((item, idx) => {
-              const no = item.no_soal || item["No Soal"] || (idx + 1);
-              return `
-                <div class="essai-item">
-                  <div style="font-size: 12px; font-weight: bold;">Soal No. ${no}</div>
-                  <div class="essai-box"></div>
-                </div>
-              `;
-            }).join('')}
-          ` : ''}
-
-        </div>
-      </body>
-      </html>
-    `;
-
-    // 5. Tulis HTML dan Trigger Cetak
-    printWindow.document.open();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-
-    printWindow.onload = () => {
-      printWindow.focus();
-      printWindow.print();
-    };
-
-  } catch (error) {
-    console.error("Gagal mencetak lembar jawaban:", error);
-    alert("Terjadi kesalahan teknis saat membuat lembar jawaban.");
-  }
-}
-
-function lihatJawabanSiswa(idSiswa, kodeSoal) {
-  // 1. Set nilai parameter ke tombol cetak secara dinamis
-  const btnCetak = document.getElementById("btnCetakLJ");
-  if (btnCetak) {
-    btnCetak.onclick = function() {
-      cetakLembarJawabanSiswa(idSiswa, kodeSoal);
-    };
-  }
-
-  // 2. Isi data header modal (Nama, Mapel, dll)
-  document.getElementById("ljNamaSiswa").innerText = "Nama Siswa dari Data";
-  document.getElementById("ljNoPeserta").innerText = idSiswa;
-  // ... isi data lainnya ...
-
-  // 3. Tampilkan Modal Bootstrap
-  const modalEl = document.getElementById("modalLihatJawaban");
-  const modalObj = bootstrap.Modal.getOrCreateInstance(modalEl);
-  modalObj.show();
-}
-
-let modalGenAIInstance = null;
-
-// Inisialisasi Modal AI saat DOMLoaded
-document.addEventListener("DOMContentLoaded", function() {
-  modalGenAIInstance = new bootstrap.Modal(document.getElementById('modalGenAI'));
-
-  // Event listener untuk mengupdate Prompt Otomatis secara Real-Time
-  const aiInputs = ['aiJumlahPG', 'aiJumlahEssai', 'aiTopik', 'aiKelas'];
-  aiInputs.forEach(id => {
-    document.getElementById(id)?.addEventListener('input', generatePromptText);
-  });
-});
-
-// Buka Modal Generator AI
-function bukaModalGenAI() {
-  const kode = getKodeSoal();
-  if (!kode) return;
-
-  const mapel = document.getElementById("cfgMapel")?.value || currentMapel || "-";
-  const kelas = document.getElementById("cfgDaftarKelas")?.value || "";
-
-  document.getElementById("aiKodeSoal").value = kode;
-  document.getElementById("aiMapel").value = mapel;
-  document.getElementById("aiKelas").value = kelas;
-
-  generatePromptText();
-  modalGenAIInstance.show();
-}
-
-function generatePromptText() {
-  // Ambil data parameter dinamis dari input form modal AI / dashboard
-  const kode = document.getElementById("aiKodeSoal")?.value || document.getElementById("kodeSoalInput")?.value || "";
-  const mapel = document.getElementById("aiMapel")?.value || document.getElementById("cfgMapel")?.value || "";
-  const kelas = document.getElementById("aiKelas")?.value || document.getElementById("cfgDaftarKelas")?.value || "";
-  const jmlPG = document.getElementById("aiJumlahPG")?.value || "10";
-  const jmlEssai = document.getElementById("aiJumlahEssai")?.value || "5";
-  const topik = document.getElementById("aiTopik")?.value || "";
-
-  // Susun teks prompt terstruktur
-  const promptText = `Buatkan bank soal untuk ujian sekolah dengan ketentuan sebagai berikut:
+    const promptText = `Buatkan bank soal untuk ujian sekolah dengan ketentuan sebagai berikut:
 - Mata Pelajaran: ${mapel}
 - Tingkat/Kelas: ${kelas}
 - Topik/Materi: ${topik}
@@ -2398,84 +2187,118 @@ Aturan Pengisian Tabel Excel:
    - Untuk Tipe ESSAI: Isi tanda strip '-'.
 7. "Skor": Untuk PG berikan nilai 2, untuk ESSAI berikan nilai 10.
 
-Sajikan hasil balasan HANYA dalam bentuk TABEL EXCEL LENGKAP dan bisa diunduh.`;
+Sajikan hasil balasan HANYA dalam bentuk TABEL (Markdown/HTML) agar bisa langsung saya copy-paste ke Excel.`;
 
-  const inputPrompt = document.getElementById("aiGeneratedPrompt");
-  if (inputPrompt) {
-    inputPrompt.value = promptText;
-  }
-}
-
-function salinDanBukaGemini() {
-  const promptText = document.getElementById("aiGeneratedPrompt")?.value || "";
-
-  if (!promptText.trim()) {
-    alert("Mohon isi topik/materi terlebih dahulu!");
-    return;
+    const inputPrompt = document.getElementById("aiGeneratedPrompt");
+    if (inputPrompt) {
+      inputPrompt.value = promptText;
+    }
   }
 
-  // 1. Langsung buka jendela/tab baru secara SINKRON agar tidak diblokir pop-up blocker
-  const geminiWindow = window.open("https://gemini.google.com/app", "_blank");
+  function salinPromptSaja(e) {
+    const promptArea = document.getElementById("aiGeneratedPrompt");
+    const promptText = promptArea ? promptArea.value : "";
 
-  // 2. Salin teks prompt ke clipboard
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(promptText).then(() => {
-      alert("✅ Prompt Soal AI berhasil disalin!\n\nTab Gemini sudah dibuka. Silakan tekan Ctrl + V (Paste) di kotak chat Gemini.");
-    }).catch(err => {
-      fallbackCopyText(promptText);
-    });
-  } else {
-    fallbackCopyText(promptText);
-  }
-}
+    if (!promptText.trim()) {
+      alert("Mohon isi topik/materi terlebih dahulu!");
+      if (e) e.preventDefault();
+      return;
+    }
 
-// Fungsi cadangan jika Clipboard API diblokir browser
-function fallbackCopyText(text) {
-  const textArea = document.createElement("textarea");
-  textArea.value = text;
-  document.body.appendChild(textArea);
-  textArea.select();
-  try {
-    document.execCommand('copy');
-    alert("✅ Prompt Soal AI berhasil disalin!\n\nTab Gemini sudah dibuka. Silakan tekan Ctrl + V (Paste) di kotak chat Gemini.");
-  } catch (err) {
-    alert("Gagal menyalin otomatis. Silakan salin teks prompt secara manual dari kotak teks.");
-  }
-  document.body.removeChild(textArea);
-}
+    promptArea.focus();
+    promptArea.select();
+    promptArea.setSelectionRange(0, 99999);
 
-function salinPromptSaja(e) {
-  const promptArea = document.getElementById("aiGeneratedPrompt");
-  const promptText = promptArea ? promptArea.value : "";
+    let suksesSalin = false;
+    try {
+      suksesSalin = document.execCommand("copy");
+    } catch (err) {
+      suksesSalin = false;
+    }
 
-  if (!promptText.trim()) {
-    alert("Mohon isi topik/materi terlebih dahulu!");
-    if (e) e.preventDefault(); // Batalkan buka tab jika topik kosong
-    return;
+    if (!suksesSalin && navigator.clipboard) {
+      navigator.clipboard.writeText(promptText);
+    }
+
+    alert("✅ Prompt Soal AI berhasil disalin!\n\nSilakan tekan Ctrl + V (Paste) pada kolom chat Gemini yang terbuka.");
   }
 
-  // 1. Pilih/Highlight teks pada textarea
-  promptArea.focus();
-  promptArea.select();
-  promptArea.setSelectionRange(0, 99999); // Untuk perangkat mobile/tablet
+  // --- FUNGSI DAFTAR KODE SOAL & DUPLIKASI ---
+  async function muatTabelDaftarKodeSoal() {
+    const tbody = document.getElementById("tabelDaftarKodeBody");
+    if (!tbody) return;
 
-  // 2. Eksekusi penyalinan teks ke clipboard
-  let suksesSalin = false;
-  try {
-    suksesSalin = document.execCommand("copy");
-  } catch (err) {
-    suksesSalin = false;
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Memuat daftar kode soal...</td></tr>';
+
+    try {
+      const result = await apiPost({ action: "getDaftarSemuaKodeSoal" });
+
+      if (result.status === "success" && Array.isArray(result.data)) {
+        if (result.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">Belum ada kode soal yang dibuat.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = "";
+        result.data.forEach((item, index) => {
+          const totalSoal = (item.jumlah_pg || 0) + (item.jumlah_essai || 0);
+          const row = `
+            <tr>
+              <td class="text-center fw-bold">${index + 1}</td>
+              <td><strong class="text-primary">${item.kode_soal}</strong></td>
+              <td>${item.mapel || '-'}</td>
+              <td>${item.kelas || '-'}</td>
+              <td class="text-center"><span class="badge bg-primary">${item.jumlah_pg || 0}</span></td>
+              <td class="text-center"><span class="badge bg-info text-dark">${item.jumlah_essai || 0}</span></td>
+              <td class="text-center"><span class="badge bg-success">${totalSoal}</span></td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="pilihKodeSoalDaftar('${item.kode_soal}')" title="Pilih & Kelola Kode Ini">
+                  📌 Pilih
+                </button>
+                <button class="btn btn-sm btn-outline-info text-dark fw-bold me-1" onclick="tinjauDanCetakSoal('${item.kode_soal}')" title="Pratinjau Soal">
+                  🔍 Cetak
+                </button>
+                <button class="btn btn-sm btn-outline-danger fw-bold" onclick="hapusBankSoal('${item.kode_soal}')" title="Hapus Paket Soal Ini">
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      } else {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">Gagal memuat daftar: ${result.message || 'Terjadi kesalahan'}</td></tr>`;
+      }
+    } catch (err) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Gagal terhubung ke server. Silakan coba lagi.</td></tr>';
+    }
   }
 
-  // Fallback ke Clipboard API modern jika execCommand gagal
-  if (!suksesSalin && navigator.clipboard) {
-    navigator.clipboard.writeText(promptText);
+  function pilihKodeSoalDaftar(kodeSoal) {
+    document.getElementById("kodeSoalInput").value = kodeSoal;
+    document.getElementById("cfgKodeUjian").value = kodeSoal;
+    localStorage.setItem("guru_last_kode_soal", kodeSoal);
+    alert(`Kode soal '${kodeSoal}' dipilih! Anda bisa memuat pengaturan atau hasil ujian untuk kode ini.`);
   }
 
-  // Notifikasi konfirmasi singkat
-  alert("✅ Prompt Soal AI berhasil disalin!\n\nSilakan tekan Ctrl + V (Paste) pada kolom chat Gemini yang terbuka.");
-}
+  async function hapusBankSoal(kodeSoal) {
+    if (!confirm(`⚠️ PERINGATAN: Apakah Anda yakin ingin menghapus SELURUH bank soal dan pengaturan untuk kode '${kodeSoal}'?`)) {
+      return;
+    }
 
+    try {
+      const result = await apiPost({ action: "hapusKodeSoal", kode_soal: kodeSoal });
+      if (result.status === "success") {
+        alert(result.message || "Kode soal berhasil dihapus!");
+        muatTabelDaftarKodeSoal();
+        muatDaftarKodeSoal();
+      } else {
+        alert("Gagal menghapus: " + result.message);
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan koneksi saat menghapus kode soal.");
+    }
+  }
 </script>
 </body>
 </html>
