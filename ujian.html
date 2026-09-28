@@ -881,13 +881,16 @@ function refreshKodeSoal() {
 
       if (response.status === "success" && response.data) {
         const cfg = response.data;
-        const strKelas = cfg.kelas || cfg.daftar_kelas || "";
+        
+        // Dikonversi ke String terlebih dahulu untuk mencegah error .trim()
+        const rawKelas = cfg.kelas !== undefined ? cfg.kelas : (cfg.daftar_kelas !== undefined ? cfg.daftar_kelas : "");
+        const strKelas = String(rawKelas).trim();
 
-        if (strKelas.trim() !== "") {
+        if (strKelas !== "") {
           selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
           const listKelas = strKelas.split(/[,;]+/);
           listKelas.forEach(kelas => {
-            const k = kelas.trim();
+            const k = String(kelas).trim();
             if (k) {
               selectKelas.innerHTML += `<option value="${k}">${k}</option>`;
             }
