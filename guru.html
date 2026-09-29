@@ -2005,7 +2005,7 @@
       btn.innerHTML = teksAsli;
     }
   }
-
+/*
   async function muatAnalisisSoal() {
     const kode = getKodeSoal();
     if (!kode) return;
@@ -2059,7 +2059,114 @@
       tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Terjadi kesalahan koneksi saat memuat analisis. Silakan coba lagi.</td></tr>';
     }
   }
+*/
+  async function muatAnalisisSoal() {
+    const kode = getKodeSoal();
+    if (!kode) return;
 
+    // Ambil Mata Pelajaran dari Pengaturan
+    const mapel = document.getElementById("cfgMapel")?.value || currentMapel || "-";
+    
+    // Set Subtitle Identitas Laporan Analisis
+    const subTitleEl = document.getElementById("subTitleAnalisis");
+    if (subTitleEl) {
+      subTitleEl.innerText = `Kode Soal: ${kode} | Mapel: ${mapel}`;
+    }
+
+    const tbody = document.getElementById("tabelAnalisisBody");
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Menganalisis butir soal...</td></tr>';
+
+    try {
+      const payload = { action: "analisisSoal", kode_soal: kode };
+      const result = await apiPost(payload);
+
+      if (result.status === "success") {
+        rawDataAnalisis = result.analisis || result.data || [];
+        document.getElementById("infoTotalSiswaAnalisis").innerText = `Total Responden/Siswa: ${result.total_siswa || 0} orang`;
+        
+        if (rawDataAnalisis.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">Belum ada data siswa untuk dianalisis.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = "";
+        rawDataAnalisis.forEach(item => {
+          let badgeKategori = "bg-success";
+          if (item.kategori === "Mudah") badgeKategori = "bg-info text-dark";
+          if (item.kategori === "Sukar") badgeKategori = "bg-danger";
+
+          const isPG = item.tipe === "PG" || item.tipe === "PILGAN";
+          const seb = item.sebaran || { A:0, B:0, C:0, D:0 };
+          const sebaranText = isPG 
+            ? `A: <b>${seb.A || 0}</b> | B: <b>${seb.B || 0}</b> | C: <b>${seb.C || 0}</b> | D: <b>${seb.D || 0}</b>`
+            : `<i class="text-muted">Soal Essai (Manual)</i>`;
+
+          const row = `
+            <tr>
+              <td class="text-center fw-bold">${item.no_soal}</td>
+              <td class="text-center"><span class="badge bg-secondary">${item.tipe}</span></td>
+              <td class="text-center fw-bold text-primary">${item.kunci || "-"}</td>
+              <td>${sebaranText}</td>
+              <td class="text-center text-success fw-bold">${item.benar}</td>
+              <td class="text-center text-danger fw-bold">${item.salah}</td>
+              <td class="text-center fw-bold">${item.tingkat_kesukaran}</td>
+              <td class="text-center"><span class="badge ${badgeKategori}">${item.kategori}</span></td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      } else {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">Gagal: ${result.message}</td></tr>`;
+      }
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Terjadi kesalahan koneksi saat memuat analisis. Silakan coba lagi.</td></tr>';
+    }
+  }
+
+  // CETAK ANALISIS SOAL DENGAN NAMA FILE DYNAMIS
+  function cetakAnalisisPDF() {
+    const kode = getKodeSoal();
+    if (!kode || rawDataAnalisis.length === 0) {
+      alert("Tidak ada data analisis soal untuk dicetak!");
+      return;
+    }
+
+    const mapel = document.getElementById("cfgMapel")?.value || currentMapel || "";
+    const originalTitle = document.title;
+
+    // Set judul halaman agar otomatis menjadi nama file saat "Save as PDF"
+    document.title = `Laporan_Analisis_Soal_${kode}_${mapel}`.replace(/\s+/g, '_');
+
+    window.print();
+
+    // Kembalikan judul halaman semula
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000);
+  }
+
+  // CETAK REKAP HASIL UJIAN DENGAN NAMA FILE DYNAMIS
+  function cetakPDF() {
+    const kode = getKodeSoal();
+    if (!kode || rawDataHasil.length === 0) {
+      alert("Tidak ada data rekap nilai untuk dicetak!");
+      return;
+    }
+
+    const mapel = document.getElementById("cfgMapel")?.value || currentMapel || "";
+    const originalTitle = document.title;
+
+    // Set judul halaman agar otomatis menjadi nama file saat "Save as PDF"
+    document.title = `Laporan_Rekap_Nilai_${kode}_${mapel}`.replace(/\s+/g, '_');
+
+    window.print();
+
+    // Kembalikan judul halaman semula
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000);
+  }
+  
   function exportAnalisisToExcel() {
     const kode = getKodeSoal();
     if (!kode || rawDataAnalisis.length === 0) {
@@ -2089,7 +2196,7 @@
     XLSX.utils.book_append_sheet(workbook, worksheet, "Analisis Soal");
     XLSX.writeFile(workbook, `Analisis_Soal_${kode}.xlsx`);
   }
-
+/*
   function cetakAnalisisPDF() {
     const kode = getKodeSoal();
     if (!kode || rawDataAnalisis.length === 0) {
@@ -2098,7 +2205,7 @@
     }
     window.print();
   }
-
+*/
   function exportToExcel() {
     const kode = getKodeSoal();
     const dataYangDiExport = filteredHasil.length > 0 ? filteredHasil : rawDataHasil;
@@ -2131,7 +2238,7 @@
     XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Nilai");
     XLSX.writeFile(workbook, `Rekap_Nilai_${kode}.xlsx`);
   }
-
+/*
   function cetakPDF() {
     const kode = getKodeSoal();
     if (!kode || rawDataHasil.length === 0) {
@@ -2140,7 +2247,7 @@
     }
     window.print();
   }
-  
+ */ 
   async function prosesHitungUlangNilai() {
     const kode = getKodeSoal();
     if (!kode) return;
