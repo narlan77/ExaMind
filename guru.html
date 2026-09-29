@@ -527,24 +527,41 @@
       </div>
     </div>
 
-    <!-- TAB 5: KELOLA AKUN GURU -->
+    <!-- TAB 5: KELOLA AKUN GURU (KHUSUS SUPER ADMIN) -->
     <div class="tab-pane fade no-print" id="tab-kelola-guru">
       <div class="card card-custom p-4 bg-white">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <h5 class="fw-bold mb-0">Manajemen Pengguna & Guru</h5>
+            <h5 class="fw-bold mb-0">👥 Manajemen Pengguna & Guru</h5>
             <small class="text-muted">Khusus Hak Akses <strong>Super Admin</strong></small>
           </div>
-          <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalTambahGuru">➕ Tambah Guru Baru</button>
+          <div>
+            <button class="btn btn-outline-primary btn-sm fw-bold me-2" onClick="muatTabelGuru()">🔄 Refresh Data</button>
+            <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalTambahGuru">➕ Tambah Guru Baru</button>
+          </div>
         </div>
-        <div class="alert alert-info">
-          Menu ini memungkinkan Super Admin menambahkan pengajar baru yang dapat mengakses dashboard manajemen ujian ini.
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover align-middle">
+            <thead class="table-warning text-dark">
+              <tr>
+                <th style="width: 50px;" class="text-center">No</th>
+                <th>Username / NIP</th>
+                <th>Nama Lengkap</th>
+                <th>Password</th>
+                <th class="text-center">Role</th>
+                <th class="text-center" style="width: 150px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tabelGuruBody">
+              <tr>
+                <td colspan="6" class="text-center py-3 text-muted">Memuat data akun guru...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-
-  </div>
-</div>
 
 <!-- MODAL INPUT SOAL MANUAL -->
 <div class="modal fade no-print" id="modalInputSoal" tabindex="-1" aria-hidden="true">
@@ -2555,6 +2572,37 @@ Sajikan hasil balasan HANYA dalam bentuk TABEL (Markdown/HTML) agar bisa langsun
       alert("Terjadi kesalahan koneksi saat menghapus kode soal.");
     }
   }
+<!-- MODAL EDIT PASSWORD GURU -->
+<div class="modal fade no-print" id="modalEditPassword" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold">🔑 Edit Password User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditPassword">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Username</label>
+            <input type="text" id="editUsernameGuru" class="form-control bg-light" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Nama Guru</label>
+            <input type="text" id="editNamaGuru" class="form-control bg-light" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Password Baru</label>
+            <input type="text" id="editPasswordBaru" class="form-control" placeholder="Masukkan password baru" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-success fw-bold" onClick="simpanPasswordBaru()">💾 Simpan Password</button>
+      </div>
+    </div>
+  </div>
+</div>
 </script>
 </body>
 </html>
