@@ -2059,7 +2059,7 @@
       tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Terjadi kesalahan koneksi saat memuat analisis. Silakan coba lagi.</td></tr>';
     }
   }
-*/
+
   async function muatAnalisisSoal() {
     const kode = getKodeSoal();
     if (!kode) return;
@@ -2122,7 +2122,92 @@
       tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Terjadi kesalahan koneksi saat memuat analisis. Silakan coba lagi.</td></tr>';
     }
   }
+*/
+  async function muatAnalisisSoal() {
+    const kode = getKodeSoal();
+    if (!kode) return;
 
+    const tbody = document.getElementById("tabelAnalisisBody");
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Menganalisis butir soal & mengambil data mapel...</td></tr>';
+
+    // 1. Cek Mapel dari Form atau Variabel Global
+    let mapel = document.getElementById("cfgMapel")?.value || currentMapel || "";
+
+    // 2. Jika Mapel masih kosong, ambil langsung ke Server (getPengaturan)
+    if (!mapel || mapel === "-") {
+      try {
+        const resPengaturan = await apiPost({ action: "getPengaturan", kode: kode, kode_soal: kode });
+        if (resPengaturan.status === "success" && resPengaturan.data) {
+          const cfg = Array.isArray(resPengaturan.data) ? resPengaturan.data[0] : resPengaturan.data;
+          mapel = cfg.mata_pelajaran || cfg.mapel || "-";
+          currentMapel = mapel; // Simpan ke variabel global
+          
+          // Isikan juga ke dropdown di Form Pengaturan agar sinkron
+          if (document.getElementById("cfgMapel")) {
+            selectDropdownValue("cfgMapel", mapel);
+          }
+        }
+      } catch (err) {
+        console.warn("Gagal mengambil mapel dari server:", err);
+      }
+    }
+
+    if (!mapel) mapel = "-";
+
+    // 3. Update Teks Subtitle Laporan Analisis
+    const subTitleEl = document.getElementById("subTitleAnalisis");
+    if (subTitleEl) {
+      subTitleEl.innerText = `Kode Soal: ${kode} | Mapel: ${mapel}`;
+    }
+
+    // 4. Ambil Data Analisis Soal dari Server
+    try {
+      const payload = { action: "analisisSoal", kode_soal: kode };
+      const result = await apiPost(payload);
+
+      if (result.status === "success") {
+        rawDataAnalisis = result.analisis || result.data || [];
+        document.getElementById("infoTotalSiswaAnalisis").innerText = `Total Responden/Siswa: ${result.total_siswa || 0} orang`;
+        
+        if (rawDataAnalisis.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">Belum ada data siswa untuk dianalisis.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = "";
+        rawDataAnalisis.forEach(item => {
+          let badgeKategori = "bg-success";
+          if (item.kategori === "Mudah") badgeKategori = "bg-info text-dark";
+          if (item.kategori === "Sukar") badgeKategori = "bg-danger";
+
+          const isPG = item.tipe === "PG" || item.tipe === "PILGAN";
+          const seb = item.sebaran || { A:0, B:0, C:0, D:0 };
+          const sebaranText = isPG 
+            ? `A: <b>${seb.A || 0}</b> | B: <b>${seb.B || 0}</b> | C: <b>${seb.C || 0}</b> | D: <b>${seb.D || 0}</b>`
+            : `<i class="text-muted">Soal Essai (Manual)</i>`;
+
+          const row = `
+            <tr>
+              <td class="text-center fw-bold">${item.no_soal}</td>
+              <td class="text-center"><span class="badge bg-secondary">${item.tipe}</span></td>
+              <td class="text-center fw-bold text-primary">${item.kunci || "-"}</td>
+              <td>${sebaranText}</td>
+              <td class="text-center text-success fw-bold">${item.benar}</td>
+              <td class="text-center text-danger fw-bold">${item.salah}</td>
+              <td class="text-center fw-bold">${item.tingkat_kesukaran}</td>
+              <td class="text-center"><span class="badge ${badgeKategori}">${item.kategori}</span></td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
+        });
+      } else {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">Gagal: ${result.message}</td></tr>`;
+      }
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-3">Terjadi kesalahan koneksi saat memuat analisis. Silakan coba lagi.</td></tr>';
+    }
+  }
+  
   // CETAK ANALISIS SOAL DENGAN NAMA FILE DYNAMIS
   function cetakAnalisisPDF() {
     const kode = getKodeSoal();
